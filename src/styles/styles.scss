@@ -1,0 +1,238 @@
+/* this file will be extracted to main dist folder and is imported in index.html */
+/* This file is for setting global styles  */
+@import 'variables';
+
+.flexDemoContainer {
+  border: solid 1px #red;
+  box-sizing: content-box !important;
+}
+.entity-title{
+  min-height: 30px;
+
+}
+.etable{
+  width:85%;
+}
+.data-value-td{
+  width:70%;
+}
+.data-header-td{
+  width:130px;
+}
+.data-header-el-td{
+  min-width:200px;
+  max-width:400px;
+}
+.etable-div {
+    width: 85%;
+    background: transparent;
+    /* padding: 4px 0px 3px 0px; */
+    text-align: right;
+    min-height:35px;
+}
+.menu-side-top{
+  background-color: #f3f3f3;
+}
+/* Toast **/
+.simple-notification-wrapper.right{
+  right: 200px !important;
+}
+
+.simple-notification-wrapper.top{
+  top: 150px !important;
+}
+
+.flextrim{
+  margin-top:40px;
+  margin-bottom:20px;
+}
+
+/* Dynamic form */
+.dynamic-program-form{
+  margin-top: 10px;
+  font-size:13.5px;
+  text-align: left;
+  text-transform: capitalize;
+  word-wrap: break-word;
+}
+md-input-container {
+  width:100%;
+}
+md-select {
+  width:100%;
+  display:inline !important;
+}
+md-select .md-floating-placeholder {
+  display: inherit;
+}
+.attributeForm {
+  width:30% !important;
+}
+.dataSetForm md-select {
+  width:30% !important;
+}
+.tdHeader{
+  background-color: #e0e0e0;
+}
+.dynamic-program-form md-select{
+  font-size:13.5px;
+  text-align: right;
+  margin-left: 15px;
+  word-wrap: break-word;
+}
+.md-select-select md-option{
+  font-size: 13.5px;
+}
+md-option{
+  font-size:14px;
+}
+.md-list-item{
+  color: #aa0a0a;
+  font-size: 14px !important;
+  padding: 5px 6px 24px 16px !important;
+}
+span.md-select-placeholder.md-floating-placeholder {
+    top: -20px;
+    left: -2px;
+    transform: scale(1.00)!important;
+    padding-top:8px;
+}
+/** Program tree **/
+div#programTree .tree{
+  margin-top: 20px;
+  marging-left: 20px;
+  padding: 5px 5px;
+  font-size: 9pt;
+  background-color: white;
+  overflow: auto;
+  width: 235px;
+  height: 150px;
+  border-top: 1px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
+}
+/** OrgUnit Hierarchy **/
+.tree{
+  font-size: 9pt;
+  background-color: white;
+  overflow: auto;
+  width: 235px;
+  height: 300px;
+  border-top: 1px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
+  marging-left: 20px;
+  margin-bottom: 20px;
+  padding: 5px 5px;
+}
+.tree-node-active > .node-wrapper > .node-content-wrapper, .tree-node-focused > .node-content-wrapper, .node-content-wrapper:hover{
+  color: orange !important;
+  font-weight: bold;
+}
+.node-content-wrapper{
+  list-style-type: none;
+  white-space: nowrap;
+  margin-top: 0;
+  padding: 0 0 3px 15px;
+  background-color: transparent !important;
+  background-image: url('../assets/img/treeview-gray-line.gif');
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-position: 0pt 0pt;
+}
+
+nav {
+  margin-top: 90px;
+  padding: 5px 5px;
+  margin-bottom: 15px;
+}
+
+nav a {
+  background: $nav-button-background;
+  color: white;
+  padding: 8px 16px;
+  margin: 8px;
+  vertical-align: middle;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 4px;
+}
+#dhisDropDownMenu {
+  height:44px;
+  position:fixed;
+  z-index:15;
+  top:0;
+  left:0;
+  right:0;
+  padding-left:10px;
+  box-shadow:0 0 3px #222;
+} 
+
+a {
+  color: #3162C5;
+}
+
+#header {
+  background-color: #276696;
+}
+
+#headerText {
+  color: #fff;
+}
+.with-sidebar {
+  position: relative;
+  padding-right: 16rem;
+  
+  .fixed-sidebar {
+    padding: 0 1rem;
+    margin-top: 2rem;
+    position: absolute;
+    right: 0;
+    width: 16rem;
+    
+    font-size: 0.875rem;
+
+    .back-top {
+      display: none;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    
+    ul {
+      padding-left: 1rem;
+      list-style: none;
+      margin-bottom: 0.875rem;
+    }
+
+    &.scrolled {
+      position: fixed;
+      top: 0;
+      
+      .back-top {
+        display: block;
+      }
+    }
+    
+  }
+}
+
+@media screen and (max-width: 64em) {
+  .with-sidebar {
+    
+    .fixed-sidebar {
+      display: none;
+    }
+  }
+}
+
+
+@media screen and (min-width: 42em) and (max-width: 64em) {
+  .with-sidebar {
+    padding: 2rem 4rem;
+  }
+}
+
+@media screen and (max-width: 42em) {
+  .with-sidebar {
+    padding: 2rem 1rem;
+  }
+}

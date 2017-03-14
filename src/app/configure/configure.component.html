@@ -1,0 +1,49 @@
+<div>
+  	<div fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+		<div fxFlex="20%">
+			
+		</div>
+		<div fxFlex="20%" class="flextrim">
+			<span>Configure</span>
+		</div>
+	<div fxFlex class="flextrim">
+		<form class="text-center dynamic-program-form" [formGroup]="configureTypeFormGroup">        
+			<dynamic-form-material-control *ngFor="let configureTypeModel of configureTypeFormModel"[controlGroup]="configureTypeFormGroup"                                      [model]="configureTypeModel" [hasErrorMessaging]="configureTypeModel.hasErrorMessages" [showCharacterHint]="configureTypeModel.type === 'INPUT'" (change) = "getConfigureType($event)">
+				
+			</dynamic-form-material-control>
+		</form>
+	</div>
+	<div fxFlex="20%">
+		
+	</div>
+</div>
+	<div fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+		<div class="flextrim" fxFlex="30%" fxFlexOffset="5%" *ngIf="configureType == 'messaging'">
+		 	<form class="text-center dynamic-program-form" [formGroup]="messageFormGroup">
+				<dynamic-form-material-control *ngFor="let messageModel of messageFormModel" [controlGroup]="messageFormGroup" [model]="messageModel" [hasErrorMessaging]="messageModel.hasErrorMessages" [showCharacterHint]="messageModel.type === 'INPUT'">
+					
+				</dynamic-form-material-control>
+			</form>
+		</div>
+		<div class="flextrim" fxFlex="30%" fxFlexOffset="5%" *ngIf="configureType == 'program'">
+			<form class="text-center dynamic-program-form" [formGroup]="programFormGroup">       
+				<dynamic-form-material-control *ngFor="let programModel of programFormModel" [controlGroup]="programFormGroup" [model]="programModel" [hasErrorMessaging]="programModel.hasErrorMessages" [showCharacterHint]="programModel.type === 'INPUT'" (change)= "updateProgramForm($event)" (focus)= "updateProgramForm($event)">
+				</dynamic-form-material-control>   
+			</form>
+		</div>
+		<div class="flextrim" fxFlex fxFlexOffset="5%">
+			<span>Existing Templates </span>            
+			<ng2-smart-table [settings]="settings" [source]="existingTemplates">
+				
+			</ng2-smart-table>
+		</div>
+		<div  class="flextrim" fxFlex="5%">
+		<!-- Empty space -->
+		</div>
+	</div>
+		<div fxFlexOffset="30%">       
+			<button md-button md-fab type="button"> Save</button>   
+
+		</div> 			
+
+	</div>

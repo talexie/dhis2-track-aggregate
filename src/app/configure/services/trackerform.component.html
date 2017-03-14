@@ -1,0 +1,298 @@
+  <div>
+    <simple-notifications [options]="notifyOptions"></simple-notifications>
+  </div>
+  <div fxLayout="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+    <div>
+      <hr>
+      <!-- End of entityAttributeForm -->
+    </div>
+    <div class="menu-side-top" fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+      <div fxFlex>
+        <!-- empty space -->
+      </div>
+      <div fxFlex="75%" fxLayout="column" *ngIf="programActivated">
+        <div fxFlex fxLayoutAlign="center center" class="entity-title">
+          <h1>
+            Ministry of Health - {{ orgUnitAncestors[0].name }}                
+          </h1>
+        </div>
+        <div fxFlex fxLayoutAlign="center center" class="entity-title">
+          <h2>
+            District: {{ orgUnitAncestors[2].name }}
+          </h2>
+        </div>
+        <div fxFlex fxLayoutAlign="center center" class="entity-title">
+          <h2>
+            Facility: {{ orgUnit.name}}
+          </h2>
+        </div>
+        <div fxFlex>
+          <form style="padding-top: 10px;" [formGroup]="entityAttributeForm" novalidate *ngIf="programActivated">
+            <table border="0px" class="etable">
+              <tr>
+                <td>
+                  <div class="etable-div">
+                    <label>
+                    <md-select [formControlName]="programWarehouseAttr.trackedEntityAttribute.id" placeholder="Select Warehouse">
+                      <md-option [value]="warehouse.code">{{ warehouse.name }}</md-option>
+                    </md-select>
+                    </label>
+                  </div>    
+                </td>
+                 <td>
+                  <div class="etable-div">
+                    <label> Order Date:
+                    <my-date-picker name="incidentDate" [options]="trackerDatePickerOptions"
+                                    formControlName="incidentDate" [selDate]="selDate"></my-date-picker>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="etable-div">
+                    <label>
+                    <md-select class="form-control" [formControlName]="programDeliveryZoneAttr.trackedEntityAttribute.id" placeholder="Select Delivery Zone">
+                      <md-option [value]="zone.code">{{ zone.name }}</md-option>
+                    </md-select>
+                    </label>
+                  </div>    
+                </td>
+                <td>
+                  <div class="etable-div">
+                    <label> Deadline Date:
+                    <my-date-picker name="dueDate" [options]="trackerDatePickerOptionsDisabled"
+                                    formControlName="dueDate"></my-date-picker>
+                    </label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="etable-div">
+                    <label>
+                    <md-select class="form-control" [formControlName]="programOrderTypeAttr.trackedEntityAttribute.id" placeholder="Select Order Type">
+                      <md-option *ngFor="let orderType of orderTypes" [value]="orderType.code">{{ orderType.name }}</md-option>
+                    </md-select>
+                    </label> 
+                  </div>   
+                </td>
+                <td>
+                  <div class="etable-div">
+                    
+                  </div>    
+                </td>               
+              </tr>
+              <tr>
+                <div class="etable-div">
+                    <label *ngIf="cyclesEnabled">
+                    <md-select class="form-control" [id]= "programCycleIdentifier.trackedEntityAttribute.id" [formControlName]="programCycleIdentifier.trackedEntityAttribute.id" (focus)="getCycle(entityAttributeForm.value[programCycleIdentifier.trackedEntityAttribute.id])" placeholder="Select Cycle">
+                      <md-option *ngFor="let cycle of cycles" [value]="cycle.code">{{ cycle.name }}</md-option>
+                    </md-select>
+                    </label>
+                  </div>    
+                <td>
+                  <div class="etable-div">
+                    <md-input-container>
+                      <label>Order Number:&nbsp;&nbsp;&nbsp; 
+                      <input mdInput class="form-control" [name]= "programUniqueIdentifier.trackedEntityAttribute.id" [id]= "programUniqueIdentifier.trackedEntityAttribute.id" [formControlName]="programUniqueIdentifier.trackedEntityAttribute.id" readonly="true">
+                      </label>
+                    </md-input-container>
+                  </div>
+                </td>
+              </tr> 
+            </table>  
+          </form>
+        </div>
+      </div>
+      <div fxFlex="10%">
+      </div>
+    </div>
+    <div *ngIf="programActivated">
+      <hr>
+      <!-- End of entityAttributeForm -->
+    </div>
+
+    <div fxLayout="row" fxLayout-xs="column" fxLayout-md="column" fxLayoutAlign="start stretch" fxLayoutWrap>
+        <div class="menu-side-top" fxFlexOffset="5%" fxFlex="15%" fxLayout="column" fxFlexAlign="start" fxLayoutWrap>
+          <div fxFlex>
+            <label>Organisation Units</label>
+            <div>
+              <div>
+                <div (click)="displayOrgTree()">
+                  <span *ngIf="selectedOrgUnits.length == 0 && !orgunitTreeConfig.loading">{{ orgunitTreeConfig.placeholder }}</span>
+                  <span *ngIf="!orgunitTreeConfig.loading"></span>
+                </div>
+                <div [ngClass]="{'hiddenTree':showOrgTree}" id="tree_view">
+                  <div>
+                    <form *ngIf="!orgunitTreeConfig.loading && orgunitTreeConfig.showSearch">
+                      <md-input-container>
+                      <input mdInput #filter (keyup)="filterNodes(filter.value, orgtree)" placeholder="{{ orgunitTreeConfig.searchText }}">
+                      </md-input-container>
+                    </form>
+                  </div>
+                  <div *ngIf="orgunitTreeConfig.loading">{{ orgunitTreeConfig.loadingMessage }}</div>
+                  <div>
+                    <Tree
+                      #orgtree
+                      [nodes]="organisationunits"
+                      [focused]="true"
+                      [options]="customTemplateStringOptions"
+                      (onActivate)="activateOrg($event)"
+                      (onDeactivate)="deactivateOrg($event)"
+                    >
+                      <template #treeNodeTemplate let-node>
+                        <span>{{ node.data.name }} </span>
+                      </template>
+                    </Tree>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="filters" fxFlex>
+              <label>Programs</label>
+              <div id="programTree">
+                <div *ngIf="!programAssigned">
+                  <br>
+                  <span>{{ noProgramDataMessage }}</span>
+                </div>
+                <Tree
+                  #programTree
+                  [nodes]="programsTree"
+                  [focused]="true"
+                  [options]="customTemplateStringOptions"
+                  (onActivate)="activateProgram($event)"
+
+                >
+                  <template #treeNodeTemplate let-node>
+                    <span>{{ node.data.name }} </span>
+                  </template>
+                </Tree>
+              </div>
+          </div>
+
+        </div>   
+        <div fxFlex="20%" fxFlexOffset="3%" *ngIf="stageFormOpen && !trackedEntitySubmitted" fxFlexAlign="start">
+
+            <form class="text-center dynamic-program-form" [formGroup]="trackerEntryFormGroup">
+
+                <dynamic-form-material-control *ngFor="let trackerEntryModel of formModel"
+                                               [controlGroup]="trackerEntryFormGroup"
+                                               [model]="trackerEntryModel"
+                                               [hasErrorMessaging]="trackerEntryModel.hasErrorMessages"
+                                               [showCharacterHint]="trackerEntryModel.type === 'INPUT'"
+                                               (change)="onChange($event)"
+                                               >
+
+                    
+                </dynamic-form-material-control>
+                
+            </form>
+            <div>
+
+                <button md-button [disabled]="!trackerEntryFormGroup.valid" md-fab type="button" (click)="add($event);trackerEntryFormGroup.reset()">Save</button>
+
+            </div>
+
+        </div>
+        {{ trackerEntryFormGroup.value | json }}
+        <div fxFlex="54%" fxFlexOffset="3%" fxFlexAlign="start">
+          <div>
+             Order summary 
+            <hr>
+          </div>
+          <div>
+            <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+          </div>
+          <div>
+            <button md-fab type="button" (click)="addToOrder()">+</button>
+            <i class="material-icons">mode_edit</i>
+            <i class="material-icons">delete</i>
+            <button md-fab type="button" (click)="proceed()">Order</button>
+          </div>
+          <br>
+          <br>
+          <br>
+          <form class="dataSetForm" [formGroup]="dataSetForm" *ngIf="trackedEntitySubmitted" novalidate>
+            <div>
+              <label>
+              <md-select formControlName="selectedOrgUnitId" placeholder="Select OrgUnit">
+                <md-option [value]="orgUnit.id">{{ orgUnit.name}}</md-option>
+              </md-select>
+              </label>    
+            </div>
+            <br>
+            <div>
+
+              <label>
+              <md-select formControlName="selectedDataSetId" placeholder="Select DataSet">
+                <md-option *ngFor="let ds of enabledDataSets" [value]="ds.id">{{ ds.name}}</md-option>
+              </md-select>
+              </label>    
+            </div>
+            <br>
+            <div>
+
+              <label>
+              <md-select formControlName="selectedPeriodId" placeholder="Select Period">
+                <md-option [value]="periodId">{{ periodName }} </md-option>
+              </md-select>
+              </label>    
+            </div>
+
+          </form>
+          <br>
+          <br>
+          <form class="entityDataEntryForm" [formGroup]="entityDataEntryForm" *ngIf="trackedEntitySubmitted && dataEntryFormLoaded">
+
+            <br>
+                       
+              <div formArrayName="dataElements">
+                <div *ngFor="let n of entityDataEntryForm.controls.dataElements.controls; let j = index">
+                  <div [formGroupName]="j">
+                    <div><h2>Section: {{ dataSetElements[j].name }}</h2>
+                    </div>
+                    <table>
+                      <tr class="tdHeader">
+                        <td class="data-value-el-td">
+                        
+                        </td>
+
+                        <td *ngFor="let optionComboHeader of dataSetElements[j]?.dataElements[0]?.optionCombos" class="data-header-td">
+                          {{optionComboHeader.name }}
+                          <table border="0px" *ngIf="optionComboHeader.options.length > 1">
+                            <tr>
+                              <td *ngFor="let optionHeader of optionComboHeader.options" width="130px">
+                                {{ optionHeader.title }}
+                              </td>
+                            <tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr [formGroupName]="dataElement.id" *ngFor="let dataElement of dataSetElements[j]?.dataElements;let s= index">
+                        <td>
+                        {{ dataElement.formName }}
+                        </td>
+                        <td [formGroupName]="optionCombo.id" *ngFor="let optionCombo of dataElement.optionCombos; let y= index">
+                          <table>
+                            <tr>
+                              <td *ngFor="let option of optionCombo.options; let ty= index">
+                                <input class="data-value-td" id="{{ option.id }}" formControlName="{{ option.id}}" (focusout)="onDataValueChanged($event)" type="text" />
+                              </td>
+                            </tr> 
+                          </table>                       
+                        </td>
+                      </tr>                   
+                    </table>
+                  </div>  
+                </div>
+              </div>             
+              <div>
+                <button md-fab (click)="submitDataEntryForm()" type="button">Complete</button>
+              </div>
+          </form>
+          
+        </div>        
+    </div>
+  </div>

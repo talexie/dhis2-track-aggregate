@@ -1,0 +1,20 @@
+{
+	"version": "1.0",
+	"name": "eLMIS",
+	"description": "eLMIS",
+	"icons": {
+		"48":"assets/img/order.png","16":"assets/img/order.png","128":"assets/img/order.png"
+	},
+	"developer": {
+		"url": "http://hispuganda.org",
+		"name": "Alex Tumwesigye",
+		"email": "atumwesigye@gmail.com"
+	},
+	"launch_path": "index.html?v=1.0",
+	"default_locale": "en",
+	"activities": {
+		"dhis": {
+			"href": "*"
+		}
+	}
+}

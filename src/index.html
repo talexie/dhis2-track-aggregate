@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title><%= htmlWebpackPlugin.options.title %></title>
+
+  <meta name="description" content="<%= htmlWebpackPlugin.options.title %>">
+
+  <% if (webpackConfig.htmlElements.headTags) { %>
+  <!-- Configured Head Tags  -->
+  <%= webpackConfig.htmlElements.headTags %>
+  <% } %>
+
+  <!-- base url -->
+  <base href="<%= htmlWebpackPlugin.options.metadata.baseUrl %>">
+  
+ 
+</head>
+
+<body>
+  <div id="header">
+      <img id="headerBanner" src="../../../api/staticContent/logo_banner" onclick="window.location.href='../../../dhis-web-commons-about/redirect.action'" style="cursor:pointer" title="">
+
+  </div> 
+  <app>
+    Loading...
+  </app>
+  <!-- DHIS2 Settings initialization for a baseUrl that is used for the menu -->
+  <script>
+   window.dhis2 = window.dhis2 || {};
+   dhis2.settings = dhis2.settings || {};
+   dhis2.settings.baseUrl = '../../training';
+  </script>
+
+  <!-- JQuery scripts -->
+  <script type="text/javascript" src="../../../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+  
+
+  <!-- Menu dependencies -->
+  <script type="text/javascript" src="../../../dhis-web-core-resource/react-15/react-15.min.js"></script>
+  <script type="text/javascript" src="../../../dhis-web-core-resource/rxjs/4.1.0/rx.lite.min.js"></script>
+  <script type="text/javascript" src="../../../dhis-web-core-resource/lodash/4.15.0/lodash.min.js"></script>
+  <script type="text/javascript" src="../../../dhis-web-core-resource/lodash-functional/lodash-functional.js"></script>
+
+  <!-- Menu script is up here due to perceived loading time increase -->
+  <script type="text/javascript" src="../../../dhis-web-commons/javascripts/header-bar/babel-polyfill.js"></script>
+  <script type="text/javascript" src="../../../dhis-web-commons/javascripts/header-bar/header-bar.js"></script>
+  <!-- // End menu -->
+
+
+  <script>
+    // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.
+    jQuery(document).ready(function () {
+
+      /** Initialise the baseUrl automatically
+      ** Need a better way to inject this.
+      **/
+      var baseInstance = '';
+      var baseHost = window.location.origin;
+      var basePort = window.location.port;
+      var basePath = window.location.pathname;
+      var baseInstancePath = basePath.split('/',7);
+      var BASE_DHIS2_URL = '';
+      if((baseInstancePath.indexOf('dhis-web-')) >= 0){
+        baseInstance = '';
+      }
+      else{
+        baseInstance = baseInstancePath[1];
+      }
+      if(basePort == ''){
+        BASE_DHIS2_URL = baseHost + '/' + baseInstance;
+      }
+      if(basePort !==''){
+        BASE_DHIS2_URL = baseHost + ':' + basePort + '/' + baseInstance;
+      }
+      if( Dhis2HeaderBar ){
+        Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), BASE_DHIS2_URL + '/api', { noLoadingIndicator: true });
+      }
+    });
+  </script>
+  
+  <!-- Google Analytics: change UA-71073175-1 to be your site's ID -->
+  <script>
+    (function(A,n,g,u,l,a,r){A.GoogleAnalyticsObject=r;A[l]=A[l]||function(){
+    (A[l].q=A[l].q||[]).push(arguments)},A[l].l=1*new Date();a=n.createElement(g),
+    r=n.getElementsByTagName(g)[0];a.async=1;a.src=u;r.parentNode.insertBefore(a,r)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-71073175-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+
+  <% if (htmlWebpackPlugin.options.metadata.isDevServer && htmlWebpackPlugin.options.metadata.HMR !== true) { %>
+  <!-- Webpack Dev Server reload -->
+  <script src="/webpack-dev-server.js"></script>
+  <% } %>
+
+
+</body>
+</html>
