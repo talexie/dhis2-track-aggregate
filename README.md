@@ -1,17 +1,17 @@
-DHIS2 eLmis App
+# DHIS2 eLmis App
 
-Logistics Ordering Management System (ARV and TB drugs, Test Kits - Use case)
+## Logistics Ordering Management System (ARV and TB drugs, Test Kits - Use case)
 
-* This elmis project repository is based on Angular 2 starter Kit (Angular 2 and TypeScript). 
-* Uses a [Webpack 2](http://webpack.github.io/) for building files and assisting with boilerplate. * Uses Protractor for end-to-end story and Karma for unit tests.
-* Ready to go build system using Webpack for working with TypeScript.
-* Ahead of Time (AoT) for compiling rapid page loads of production builds.
-* Tree shaking to automatically remove unused code from your production bundle.
-* [Webpack DLLs](https://robertknight.github.io/posts/webpack-dll-plugins/) dramatically speed your development builds.
-* Angular 2 code  is tested with Jasmine and Karma.
-* Hot Module Replacement with Webpack and [@angularclass/hmr](https://github.com/angularclass/angular2-hmr) and [@angularclass/hmr-loader](https://github.com/angularclass/angular2-hmr-loader)
-* Material Design with [angular/material2](https://github.com/angular/material2)
-* Angular 4 support via changing package.json and any future Angular versions
+  * This elmis project repository is based on Angular 2 starter Kit (Angular 2 and TypeScript). 
+  * Uses a [Webpack 2](http://webpack.github.io/) for building files and assisting with boilerplate. * Uses Protractor for end-to-end story and Karma for unit tests.
+  * Ready to go build system using Webpack for working with TypeScript.
+  * Ahead of Time (AoT) for compiling rapid page loads of production builds.
+  * Tree shaking to automatically remove unused code from your production bundle.
+  * [Webpack DLLs](https://robertknight.github.io/posts/webpack-dll-plugins/) dramatically speed your development builds.
+  * Angular 2 code  is tested with Jasmine and Karma.
+  * Hot Module Replacement with Webpack and [@angularclass/hmr](https://github.com/angularclass/angular2-hmr) and [@angularclass/hmr-loader](https://github.com/angularclass/angular2-hmr-loader)
+  * Material Design with [angular/material2](https://github.com/angular/material2)
+  * Angular 4 support via changing package.json and any future Angular versions
 
 ### Quick start
 **Make sure you have Node version >= 5.0 and NPM >= 3**
@@ -286,40 +286,40 @@ import * as _ from 'lodash';
 <br><br>
 
 ## eLMIS Configuration Settings
- This settings are required for sending notifications like reminders, submission, approval, etc
+  This settings are required for sending notifications like reminders, submission, approval, etc
  
- lmisConfig: {
-    templates: [{
-        id:""
-        name:""
-        description:""
-        settings: [
-          {
-            notification:{
+      lmisConfig: {
+        templates: [{
+            id:""
+            name:""
+            description:""
+            settings: [
+              {
+                notification:{
 
-              },
-            programs:{
+                  },
+                programs:{
 
-            }
-          }
-        ]
-     },
-     {
-        id:""
-        name:""
-        description:""
-          {
-            
-          }
-        ]
-     }
-    ],
-    data: [{
+                }
+              }
+            ]
+         },
+         {
+            id:""
+            name:""
+            description:""
+              {
+                
+              }
+            ]
+         }
+        ],
+        data: [{
 
 
-    }]
+        }]
 
-}
+    }
 
 # Tracker Data Object for submission
    
