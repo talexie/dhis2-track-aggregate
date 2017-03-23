@@ -1,0 +1,14 @@
+<div>
+    <form>
+        <input type="file" (change)="getFile($event)"/>
+        <button (click)="getFile($event)">Upload</button>
+    </form>
+</div>
+<div>
+  <table border="1" class="demoTable">
+    <tr>
+      <td></td>
+    </tr>
+  </table>
+  {{ importedData | json }}
+</div>

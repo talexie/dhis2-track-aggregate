@@ -96,6 +96,15 @@ api/dataElements.json?paging=false&fields=id,name,valueType,categoryCombo[id,nam
 	      .map((res:Response) => res.json())
 	      .catch(this.notify.handleError);
 	}
+
+	/** Save data Value via WebAPI 
+	**/
+	saveDataValue(dataValues) {
+	    let headers = new Headers({ 'Content-Type': 'application/json' });
+	    let options = new RequestOptions({ headers: headers });
+	   
+	    return this.http.post(this.DHIS2URL + 'api/dataValueSets?importStrategy=CREATE_AND_UPDATE', dataValues, headers).map((res: Response) => res.json());
+	}
 	/**
 	filter and group by category.
 	**/

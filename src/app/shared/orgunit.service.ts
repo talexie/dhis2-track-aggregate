@@ -3,7 +3,7 @@ import { Http, Response } from '@angular/http';
 import 'rxjs/Rx';
 import { Observable } from 'rxjs';
 import { Constants } from "../shared";
-import { isUndefined } from 'util';
+import { isUndefined, isNullOrUndefined } from 'util';
 
 @Injectable()
 export class OrgUnitService {
@@ -38,6 +38,12 @@ export class OrgUnitService {
   // Get current user information
   getUserInformation () {
     return this.http.get(this.constant.ROOTURL + 'api/me.json?fields=dataViewOrganisationUnits[id,level],organisationUnits[id,level]')
+      .map((response: Response) => response.json())
+      .catch( this.handleError );
+  }
+  // Get current user authorities
+  getUserAuthorities () {
+    return this.http.get(this.constant.ROOTURL + 'api/me.json?fields=id,name,email,phoneNumber,userCredentials[id,username,userRoles[id,name,authorities]]')
       .map((response: Response) => response.json())
       .catch( this.handleError );
   }
@@ -151,10 +157,10 @@ export class OrgUnitService {
   }
   getOrgUnitGroupByAttribute = function(orgUnitGroups, attribute) {
       for (let orgUnitGroup of orgUnitGroups) {
-          if (!isUndefined(orgUnitGroup.organisationUnitGroupSet.attributeValues)){ 
+          if ((!isNullOrUndefined(orgUnitGroup)) && (!isNullOrUndefined(orgUnitGroup.organisationUnitGroupSet)) && (!isNullOrUndefined(orgUnitGroup.organisationUnitGroupSet.attributeValues))){ 
             for (let orgUnitGroupAttribute of orgUnitGroup.organisationUnitGroupSet.attributeValues)
             {
-              if(!isUndefined(orgUnitGroupAttribute.attribute)){
+              if((!isNullOrUndefined(orgUnitGroupAttribute)) && (!isNullOrUndefined(orgUnitGroupAttribute.attribute))){
                 if ((orgUnitGroupAttribute.attribute.code === attribute) && (orgUnitGroupAttribute.value === "true")){
                   return orgUnitGroup;
                 }

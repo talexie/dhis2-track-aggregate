@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation,ValueProvider,ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation,ValueProvider,ViewChild,ApplicationRef,Input,Output } from '@angular/core';
 import { FormGroup, FormControl,NgForm,NgModel, FormArray, FormBuilder,Validators, FormsModule,ReactiveFormsModule } from '@angular/forms';
 import { TRACKER_FORM_MODEL } from '../models/trackerentry.model';
 import { 
@@ -30,6 +30,7 @@ import { DynamicComponent } from 'angular2-dynamic-component/index';
 import { DynamicFormsCoreModule } from "@ng2-dynamic-forms/core";
 import { DynamicFormsMaterialUIModule } from "@ng2-dynamic-forms/ui-material";
 import * as moment from 'moment';
+import * as safeEval from 'safe-eval';
 
 const actionMapping:IActionMapping = {
   mouse: {
@@ -123,17 +124,7 @@ export class TrackerFormComponent implements OnInit {
     private stageFormOpen: boolean = false;
     /** Set settings for table layout
      **/
-    settings = {
-       /* columns: {
-          id: {
-            title: 'ID'
-          },
-          name: {
-            title: 'Name'
-          }
-        },
-        noDataMessage: ' No data found' */
-      };
+    settings = {};
     tableListData: any = [];
     listData: any = [];
     eventsData: any = [];
@@ -217,9 +208,10 @@ export class TrackerFormComponent implements OnInit {
       private uniqueNumberGenerated: boolean = false;
       private dataElementToUpdate:any = {};
       private currentDataElementToUpdate:any = {};
-      private optionsSearched:any = [];
+      @Input() public optionsSearched:any = [];
       private stageDataElements: any = [];
       private programStageDataElements: any = [];
+      private stageDataElementsMetaData: any = {};
 
     // Controls
     //private programIdentifierControl: FormControl = new FormControl('', Validators.required);
@@ -234,6 +226,7 @@ export class TrackerFormComponent implements OnInit {
       private formBuilder: FormBuilder,
       private notify: NotifyService,
       private dataSetService: DataSetService,
+      public appRef: ApplicationRef,
 
       ){
     	  route.data.subscribe(programs => { 
@@ -357,45 +350,17 @@ export class TrackerFormComponent implements OnInit {
         
       });
       this.entityAttributeForm.valueChanges.subscribe(changedAttribute => {
-        if(!isUndefined(this.programOrderTypeAttr)){
+        this.stageFormOpen = false;
+        if(!isNullOrUndefined(this.programOrderTypeAttr)){
           setTimeout(() => {
             if((changedAttribute[this.programOrderTypeAttr.trackedEntityAttribute.id]) !== 
               "Select Type of Order"){
-              this.programActivated = true;
-              this.stageDataElements = this.getStageElements(this.programData.programs.programs,this.programTreeObject);
-        
-              let nOptionSets = this.dataSetService.getNOptionSetsFromDataElements(this.stageDataElements);
-       
-              this.dataSetService.getNOptionSet(nOptionSets).subscribe((optionSets) => { 
-                let optionSet = this.dataSetService.getSearchOptionSet(optionSets.optionSets,changedAttribute[this.programOrderTypeAttr.trackedEntityAttribute.id]);
-               
-                if(!isUndefined(optionSet)){
-                  this.dataElementToUpdate = this.dataSetService.getDataElementWithOptionSet(this.stageDataElements,optionSet.id);
-               
-                  this.optionsSearched = this.dataSetService.getOptionsByAttribute(optionSet,changedAttribute[this.programOrderTypeAttr.trackedEntityAttribute.id]);
-               
-                  setTimeout(() => {
-                    if(!isNullOrUndefined(this.optionsSearched)){
-
-                     this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,this.optionsSearched);
-                    }
-                  },0);
-                   
-                }
-                else{
-                  this.notify.error("", "An error occurred while getting the formualations types");
-                  this.optionsSearched = [{}];
-                  this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,this.optionsSearched);
-                  if(!isNullOrUndefined(this.dataElementToUpdate.id)){
-                    this.trackerEntryFormGroup.get(this.dataElementToUpdate.id).reset();
-                    this.trackerEntryFormGroup.get(this.dataElementToUpdate.id).invalid;
-                  }
-                }
-              });
-  
+              this.stageFormOpen = true;
+              this.getStageElements(this.programTreeObject.id);
+              this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
             }
             else{
-              this.programActivated = false;
+              this.stageFormOpen = false;
             }
           },0);
         }
@@ -403,10 +368,7 @@ export class TrackerFormComponent implements OnInit {
       });    
           
     }
-    //ngAfterViewInit(){
-     //   this.activateNode(this.period.id, this.pertree);
-    //}
-
+   
     prepareOrganisationUnitTree(organisationUnit,type:string='top') {
         if (type == "top"){
           if (organisationUnit.children) {
@@ -447,12 +409,13 @@ export class TrackerFormComponent implements OnInit {
           });
         }
     }
-    addToOrder(){
+    addToOrder(optionSearched){
+        
         this.stageFormSubmitted = false;
         this.stageFormOpen = true;
         this.stageDataElementsLoaded = false;
-
-        this.trackerFields = this.getStageTrackerFields(this.programData.programs.programs,this.programTreeObject);
+        this.optionsSearched = optionSearched;
+        this.getStageTrackerFields(this.programTreeObject.id);
         
         if(this.trackerFields.length > 0){
           this.formModel = []; 
@@ -465,13 +428,13 @@ export class TrackerFormComponent implements OnInit {
           },0);
           this.stageDataElementsLoaded = true;          
         }
-          
+        this.onChange();  
     }
     /**
     update data element stage Model 
     **/
     updateModel(formModel,id,formService,options){
-      if((!isUndefined(options)) && (!isUndefined(options))){
+      if((!isNullOrUndefined(options)) && (!isNullOrUndefined(options))){
         return this.prog.updateSelectModel(formModel,id,formService,options);
       }
       else{
@@ -487,6 +450,7 @@ export class TrackerFormComponent implements OnInit {
     Load data entry form based on the choosen dataSet.
     **/
     getDataSet(dataSet){
+      this.dataEntryFormLoaded = false;
       console.log("dataSetcc " + !isUndefined(dataSet) + " Loaded " + this.dataEntryFormLoaded);
       
       if(!isUndefined(dataSet)){
@@ -499,7 +463,7 @@ export class TrackerFormComponent implements OnInit {
             filteredDataElements = this.dataSetService.groupDataElementOptionCombosByName(dataElement.dataElements,this.dataSetService.filterCategoriesByItem(dataElement.dataElements));
             console.log("dataSetcato " + JSON.stringify(filteredDataElements));
             if(!isUndefined(filteredDataElements)){
-              this.entityDataEntryForm.get('dataElements').setValue([]);
+              //this.entityDataEntryForm.get('dataElements').setValue(['']);
               this.dataSetService.getCategoryCombos('DISAGGREGATION').subscribe((categoryCombo)=>{
                 
                 this.categoryCombos = this.dataSetService.createCategoryComboFormArray(categoryCombo.categoryCombos,filteredDataElements);
@@ -521,7 +485,9 @@ export class TrackerFormComponent implements OnInit {
         this.buildTestForm(this.categoryCombos);
       }     
     }
+
     buildTestForm(elements){
+      this.dataEntryFormLoaded = true;
       this.dataSetElements = elements;
       this.dataEntryControl = <FormArray> this.entityDataEntryForm.get('dataElements');
       for(let categoryCombo of elements){     
@@ -549,6 +515,7 @@ export class TrackerFormComponent implements OnInit {
     }
 
     createDataElementOptionFormGroup(options:any) {
+      console.log("Creating form controls");
           let t:any = {};
           for (let option of options){
            t[option.id] = [''];  
@@ -576,11 +543,13 @@ export class TrackerFormComponent implements OnInit {
 
     }
     add(event) {
+       
         this.stageDataElementsLoaded = false;
         this.stageFormOpen = false;
         this.stageFormSubmitted = true;
         this.tableListData.push(this.trackerEntryFormGroup.value);
         this.source.load(this.tableListData);
+        this.optionsSearched = this.optionsSearched;
        
     }
 
@@ -588,51 +557,118 @@ export class TrackerFormComponent implements OnInit {
         this.formService.removeFormArrayGroup(index, this.arrayControl, this.arrayModel);
     }
 
-    onChange($event) {
+    onChange() {
         /**
         Test changes on dropdowns
 
         **/       
-
+       
+      
       if((!isNullOrUndefined(this.dataElementToUpdate.id)) && (this.dataElementToUpdate.id !== '')){
-
-        let changedValue = this.trackerEntryFormGroup.get(this.dataElementToUpdate.id
+         let initialValue = this.trackerEntryFormGroup.get(this.dataElementToUpdate.id
           ).value;
-
-        this.getDataElementSelectedOptions(changedValue,this.stageDataElements); 
-        if(!isNullOrUndefined(this.currentDataElementToUpdate.id)){
-          this.trackerEntryFormGroup.get(this.currentDataElementToUpdate.id).valueChanges.subscribe((optionValue)=> {
-            this.dataSetService.getOptionByCode(optionValue).subscribe((options) => {
-              let basicUnitOptions: any = [];
-              let optionAttributeCode = this.dataSetService.getOptionAttributeValueByCode(options.options,'LMIS_ATTR_BASIC_UNIT');
-            
-              if(!isUndefined(optionAttributeCode)){
-                let dataElementBasicUnit = this.dataSetService.getDataElementByAttribute(this.programStageDataElements,'LMIS_ATTR_BASIC_UNIT_DATA_ELEMENT');
-                basicUnitOptions.push({label: optionAttributeCode, value: optionAttributeCode});
-                this.updateModel(this.formModel,dataElementBasicUnit.dataElement.id,this.formService,basicUnitOptions);
-                this.trackerEntryFormGroup.get(dataElementBasicUnit.dataElement.id).setValue(optionAttributeCode);
-                
-              }
-              else{
-                this.notify.info("", "There is no basic unit assigned");
-              }               
-            });
-          });
-        }       
+        console.log("Initial Value " + initialValue);
+        if(isNullOrUndefined(initialValue)){         
+               
+          this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
+        }
+        else{
+          this.applyDropDownChanges(this.dataElementToUpdate,this.stageDataElements,this.currentDataElementToUpdate,'LMIS_ATTR_BASIC_UNIT_DATA_ELEMENT','LMIS_ATTR_BASIC_UNIT',this.formModel,this.formService)
+        }      
+      }
+      else{
+        this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,[]);
+       
       }
      
       /**
       Run program rules
       **/
-        this.prog.getProgramRuleVariables(this.programTreeObject.program.id).subscribe((programRuleVariables) => {
-          
-          this.prog.getProgramRules(this.programTreeObject.program.id).subscribe((programRules) => {
+      if(this.stageDataElements.length > 0){
+          this.prog.getProgramRuleVariables(this.programTreeObject.program.id).subscribe((programRuleVariables) => {
             
-            let actions:any = this.prog.applyProgramRules(programRules.programRules,programRuleVariables.programRuleVariables,'');
-            this.runProgramRules(actions,this.trackerEntryFormGroup.value);
+            this.prog.getProgramRules(this.programTreeObject.program.id).subscribe((programRules) => {
+              
+              let actions:any = this.prog.applyProgramRules(programRules.programRules,programRuleVariables.programRuleVariables,'');
+              this.runProgramRules(actions,this.trackerEntryFormGroup.value);
+            });
           });
-        });
-        
+      } 
+    }
+    /**
+    **/
+    getDropDownChanges(trackedEntityAttribute,stageDataElements,formModel,formService){
+      let nOptionSets = this.dataSetService.getNOptionSetsFromDataElements(this.stageDataElements);
+      let changedAttributeValue = this.entityAttributeForm.get(trackedEntityAttribute.id).value;
+      this.dataSetService.getNOptionSet(nOptionSets).subscribe((optionSets) => { 
+        let optionSet = this.dataSetService.getSearchOptionSet(optionSets.optionSets,changedAttributeValue);
+       
+        if(!isNullOrUndefined(optionSet)){
+          this.dataElementToUpdate = this.dataSetService.getDataElementWithOptionSet(stageDataElements,optionSet.id);
+       
+          this.optionsSearched = this.dataSetService.getOptionsByAttribute(optionSet,changedAttributeValue);
+       
+          setTimeout(() => {
+            if(!isNullOrUndefined(this.optionsSearched)){
+
+             this.updateModel(formModel,this.dataElementToUpdate.id,formService,this.optionsSearched);
+              this.appRef.tick();
+
+            }
+          },0);
+        }
+        else
+        {
+          this.notify.error("", "An error occurred while getting the formualations types");
+          this.optionsSearched = [{}];
+          this.updateModel(formModel,this.dataElementToUpdate.id,formService,this.optionsSearched);
+          
+          if(!isNullOrUndefined(this.dataElementToUpdate.id)){
+            this.trackerEntryFormGroup.get(this.dataElementToUpdate.id).reset();
+            this.trackerEntryFormGroup.get(this.dataElementToUpdate.id).invalid;
+          }
+        }
+      });
+    }
+    /**
+    Apply dropdown changes
+    **/
+    applyDropDownChanges(dataElementToUpdate,stageDataElements,currentDataElementToUpdate,deAttributeCode,attributeCode,formModel,formService){
+      this.trackerEntryFormGroup.get(dataElementToUpdate.id
+            ).valueChanges.subscribe((changedValue) => { 
+
+        this.getDataElementSelectedOptions(changedValue,stageDataElements); 
+        if(!isNullOrUndefined(currentDataElementToUpdate.id)){
+          
+          this.trackerEntryFormGroup.get(currentDataElementToUpdate.id).valueChanges.subscribe((optionValue)=> {
+
+            this.dataSetService.getOptionByCode(optionValue).subscribe((options) => {
+              let basicUnitOptions: any = [];
+              let optionAttributeCode = this.dataSetService.getOptionAttributeValueByCode(options.options,attributeCode);
+              let dataElementBasicUnit = this.dataSetService.getDataElementByAttribute(this.programStageDataElements,deAttributeCode);
+              if(!isNullOrUndefined(optionAttributeCode)){
+               
+                basicUnitOptions.push({label: optionAttributeCode, value: optionAttributeCode});
+                this.updateModel(formModel,dataElementBasicUnit.dataElement.id,formService,basicUnitOptions);
+                this.trackerEntryFormGroup.get(dataElementBasicUnit.dataElement.id).setValue(optionAttributeCode);
+                this.appRef.tick();
+                
+              }
+              else{
+                this.notify.info("", "There is no basic unit assigned");
+                 basicUnitOptions.push({label: optionAttributeCode, value: optionAttributeCode});
+                this.updateModel(formModel,dataElementBasicUnit.dataElement.id,formService,basicUnitOptions);
+
+              }               
+            });
+          });
+        }
+        else{
+          this.updateModel(formModel,currentDataElementToUpdate.id,formService,[]);
+
+        }
+
+      }); 
     }
     // add item to array of selected items when item is selected
     activateOrg = ($event) => {
@@ -690,15 +726,24 @@ export class TrackerFormComponent implements OnInit {
     //   }
     // });
     }
-    createTableHeader(metadata,programStage){
-        let program: any = [];
-        let programStageObject: any = [];
-        let settings = {};
-        // Check if program has children and reject it. **/
+    createTableHeader(dataElements){
 
-        program = this.prog.getProgram(metadata,programStage.program.id);
-        programStageObject = this.prog.getProgramStage(program,programStage.id);        
-        settings = this.prog.createStageTableHeadings(programStageObject);
+        let settings:any = {};
+
+        // Check if program has children and reject it. **/
+        
+        settings = this.prog.createStageTableHeadings(dataElements);
+        settings.actions = { 
+          add: false,
+          position:"left",
+          columnTitle: "Edit/Delete" 
+        };
+        settings.pager = { 
+          perPage:30
+        };
+        settings.attr = { 
+          class:"tableSmartInput"
+        };
         return settings;
     }
     /** Get program attributes **/
@@ -713,24 +758,17 @@ export class TrackerFormComponent implements OnInit {
           this.notify.error("","Select the Program Stage             ");
         }
     }
-    getStageTrackerFields(metadata,programStage){
-        let trackerProgram: any = [];
-        let trackerProgramStage: any = [];
-        let trackerProgramStageFields: any = [];     
-        trackerProgram = this.prog.getProgram(metadata,programStage.program.id);
-        trackerProgramStage = this.prog.getProgramStage(trackerProgram,programStage.id);
-        trackerProgramStageFields = this.prog.getProgramStageDataElements(trackerProgramStage,programStage.id);
-        return trackerProgramStageFields;
+    getStageTrackerFields(programStage){
+
+          this.trackerFields = this.prog.getDataElementsStageModel(this.stageDataElementsMetaData.programStageDataElements);
+
+        return this.trackerFields;
     }
-    getStageElements(metadata,programStage){
-      console.log("Reached here");
-        let trackerProgram: any = [];
-        let trackerProgramStage: any = [];
-        let trackerProgramStageFields: any = [];     
-        trackerProgram = this.prog.getProgram(metadata,programStage.program.id);
-        trackerProgramStage = this.prog.getProgramStage(trackerProgram,programStage.id);
-        trackerProgramStageFields = this.prog.getProgramStageDataElementsNoModel(trackerProgramStage,programStage.id);
-        return trackerProgramStageFields;
+    getStageElements(programStage:string){    
+
+           this.stageDataElements = this.prog.getProgramStageDataElementsNoModel(this.stageDataElementsMetaData.programStageDataElements);
+         
+        return this.stageDataElements;
     }
     createProgramTree(metadata){
    
@@ -756,11 +794,11 @@ export class TrackerFormComponent implements OnInit {
         return programTreeNodes;
     }
     activateProgram = ($event) => {
-        this.programActivated = true;
+        
         this.selectedProgram = [$event.node.data];
         this.programTreeObject = $event.node.data;
         this.programAttributes = this.getProgramAttributes(this._programsMetaData,this.programTreeObject);
-        this.settings = this.createTableHeader(this._programsMetaData,this.programTreeObject);
+        
         let incidentDate: FormControl = new FormControl('incidentDate', Validators.required);
         this.entityAttributeForm.addControl('incidentDate', incidentDate);
         let dueDate: FormControl = new FormControl('dueDate', Validators.required);
@@ -773,10 +811,8 @@ export class TrackerFormComponent implements OnInit {
         this.programDeliveryZoneAttr = this.prog.getProgramAttributeByCode(this.programAttributes,"LMIS_DELIVERY_ZONE");
         this.programOrderTypeAttr = this.prog.getProgramAttributeByCode(this.programAttributes,"LMIS_ORDER_TYPE");
         this.programUniqueIdentifier = this.prog.getProgramIdentifier(this.programAttributes);
-  
-        this.cycles = this.programCycleIdentifier.trackedEntityAttribute.optionSet.options;
-        this.orderTypes = this.programOrderTypeAttr.trackedEntityAttribute.optionSet.options;
-
+    
+        
         this.zone = this.orgunitService.getOrgUnitGroupByAttribute(this.orgUnitGroups,'LMIS_ATTR_DELIVERY_ZONE');
         this.warehouse = this.orgunitService.getOrgUnitGroupByAttribute(this.orgUnitGroups,'LMIS_ATTR_WAREHOUSE');
         //setTimeout(() =>{
@@ -789,6 +825,8 @@ export class TrackerFormComponent implements OnInit {
            
             this.entityAttributeForm.addControl(this.programOrderTypeAttr.trackedEntityAttribute.id, this.programOrderTypeControl);
            
+            this.programActivated = true;
+            
             /** Fill in the order number **/
           setTimeout(() =>{  
             this.prog.generateAndReserveId(this.programUniqueIdentifier.trackedEntityAttribute.id,1).subscribe((generated) =>{
@@ -801,7 +839,8 @@ export class TrackerFormComponent implements OnInit {
             });
             this.entityAttributeForm.get(this.programDeliveryZoneAttr.trackedEntityAttribute.id).setValue(this.zone.code);
             this.entityAttributeForm.get(this.programWarehouseAttr.trackedEntityAttribute.id).setValue(this.warehouse.code);
-
+            this.cycles = this.programCycleIdentifier.trackedEntityAttribute.optionSet.options;
+            this.orderTypes = this.programOrderTypeAttr.trackedEntityAttribute.optionSet.options;
 
             /** To Do
              Re-check to ensure that there is only one optionSets for Cycles
@@ -816,10 +855,18 @@ export class TrackerFormComponent implements OnInit {
             setTimeout(() => {
                 this.prog.getDataElementsByProgramStage(this.programTreeObject.id).subscribe((dataElements) =>{
                   this.programStageDataElements = dataElements.programStageDataElements;
-                });               
+                  //this.settings = this.createTableHeader(this.programStageDataElements);
+                });
+                setTimeout(() => {
+                    this.prog.getProgramStageDataElementsMetaData(this.programTreeObject.id).subscribe((stageDataElements) =>{
+                      this.stageDataElementsMetaData = stageDataElements;
+                      this.settings = this.createTableHeader(stageDataElements.programStageDataElements);
+                      this.addToOrder(this.optionsSearched);
+                    });               
+                },0);               
             },0);
-            this.addToOrder();
-          },5);
+            
+          },10);
         return this.selectedProgram;
     };
     onDateChanged(event: IMyDateModel) {
@@ -848,8 +895,9 @@ export class TrackerFormComponent implements OnInit {
           }; 
           this.entityAttributeForm.controls['dueDate'].setValue({ date: dueDateString,formatted:deadline.date });
         }
-       
+        
       });
+
     }
     /**
     Run program Rules
@@ -858,17 +906,21 @@ export class TrackerFormComponent implements OnInit {
       
       for(let programRule of programRules){
         for(let formValue in formValues){
-          programRule.condition = (programRule.condition).replace(formValue,formValues[formValue])
+          let regString = new RegExp(formValue,'gm');
+          let replacement = '"' + formValues[formValue] + '"';
+          programRule.condition = (programRule.condition).replace(regString,replacement);
         }
-        if(eval(programRule.condition)){
+        
+        if(safeEval(programRule.condition)){
           console.log("The rule " + JSON.stringify(programRule.condition) + " is true");
           for(let programRuleAction of programRule.programRuleActions){
             if(programRuleAction.programRuleActionType === 'ASSIGN'){
               for(let formValue in formValues){
-                programRuleAction.data = (programRuleAction.data).replace(formValue,formValues[formValue]);
+                programRuleAction.data = (programRuleAction.data).replace(new RegExp(formValue,'g'),formValues[formValue]);
               }
               this.isReadOnly = true;
-              let calculatedValue = eval(programRuleAction.data).toFixed(0);
+              let calculatedValue = (safeEval(programRuleAction.data)).toFixed(0);
+
               if(isNaN(calculatedValue)){
                 calculatedValue = 0;
                 this.notify.info("", "The calculated value is not a number and has been reset to 0");
@@ -884,7 +936,7 @@ export class TrackerFormComponent implements OnInit {
             }
             else if(programRuleAction.programRuleActionType === 'ERRORONCOMPLETE'){
              for(let formValue in formValues){
-                programRuleAction.content = (programRuleAction.content).replace(formValue,formValues[formValue]);
+                programRuleAction.content = (programRuleAction.content).replace(new RegExp(formValue,'g'),formValues[formValue]);
               }
               this.isHidden = false;
               this.notify.error("",programRuleAction.content);
@@ -892,7 +944,7 @@ export class TrackerFormComponent implements OnInit {
             }
             else if(programRuleAction.programRuleActionType === 'HIDEFIELD'){
              for(let formValue in formValues){
-                programRuleAction.content = (programRuleAction.content).replace(formValue,formValues[formValue]);
+                programRuleAction.content = (programRuleAction.content).replace(new RegExp(formValue,'g'),formValues[formValue]);
               }
               this.isHidden = true;
               this.notify.error("",programRuleAction.content);
@@ -901,7 +953,7 @@ export class TrackerFormComponent implements OnInit {
             }
             else{
              for(let formValue in formValues){
-                programRuleAction.content = (programRuleAction.content).replace(formValue,formValues[formValue]);
+                programRuleAction.content = (programRuleAction.content).replace(new RegExp(formValue,'g'),formValues[formValue]);
               }
               this.notify.info("",programRuleAction.content);
             }
@@ -949,8 +1001,15 @@ export class TrackerFormComponent implements OnInit {
               }
             });
 
-        },1);
+        },0);
       }
     }
+    /** 
+    Cancel adding to an order
+    **/
+    cancelAdd(){
+      this.stageFormOpen = false;
+      this.trackerEntryFormGroup.reset();
+    } 
    
 }

@@ -2,6 +2,30 @@
 /* This file is for setting global styles  */
 @import 'variables';
 
+.identifier mat-input-infix{
+  display:inline-flex !important;
+}
+.tableSmartInput {
+    width: 90% !important;
+    line-height: normal;
+    padding: .375rem .15rem !important;
+}
+.ng2-smart-table th {
+    min-width: 60px !important;
+}
+.ng2-smart-filter input, .ng2-smart-filter select {
+    width: 90% !important;
+    line-height: normal;
+    padding: .375rem .15rem !important;
+    font-weight: 400;
+}
+.tableSmartHeading {
+    min-width:80px;
+    font-size: .875rem;
+    margin: 0;
+    padding: .5rem 1rem;
+    border: 1px solid #e9ebec;
+}
 .flexDemoContainer {
   border: solid 1px #red;
   box-sizing: content-box !important;
@@ -31,7 +55,7 @@
     min-height:35px;
 }
 .menu-side-top{
-  background-color: #f3f3f3;
+  background-color: #fff;
 }
 /* Toast **/
 .simple-notification-wrapper.right{
@@ -58,6 +82,9 @@
 md-input-container {
   width:100%;
 }
+.mat-input-container {
+  font-size: 18px !important;
+}
 md-select {
   width:100%;
   display:inline !important;
@@ -79,6 +106,9 @@ md-select .md-floating-placeholder {
   text-align: right;
   margin-left: 15px;
   word-wrap: break-word;
+}
+.mat-select-placeholder {
+  text-align: left;
 }
 .md-select-select md-option{
   font-size: 13.5px;
@@ -133,7 +163,7 @@ div#programTree .tree{
   margin-top: 0;
   padding: 0 0 3px 15px;
   background-color: transparent !important;
-  background-image: url('../assets/img/treeview-gray-line.gif');
+ /* background-image: url('../assets/img/treeview-gray-line.gif'); */
   background-repeat: no-repeat;
   background-attachment: scroll;
   background-position: 0pt 0pt;
@@ -178,61 +208,7 @@ a {
 #headerText {
   color: #fff;
 }
-.with-sidebar {
-  position: relative;
-  padding-right: 16rem;
-  
-  .fixed-sidebar {
-    padding: 0 1rem;
-    margin-top: 2rem;
-    position: absolute;
-    right: 0;
-    width: 16rem;
-    
-    font-size: 0.875rem;
-
-    .back-top {
-      display: none;
-      margin-bottom: 1rem;
-      font-weight: bold;
-    }
-    
-    ul {
-      padding-left: 1rem;
-      list-style: none;
-      margin-bottom: 0.875rem;
-    }
-
-    &.scrolled {
-      position: fixed;
-      top: 0;
-      
-      .back-top {
-        display: block;
-      }
-    }
-    
-  }
-}
-
-@media screen and (max-width: 64em) {
-  .with-sidebar {
-    
-    .fixed-sidebar {
-      display: none;
-    }
-  }
-}
-
-
-@media screen and (min-width: 42em) and (max-width: 64em) {
-  .with-sidebar {
-    padding: 2rem 4rem;
-  }
-}
-
-@media screen and (max-width: 42em) {
-  .with-sidebar {
-    padding: 2rem 1rem;
-  }
-}
+.my-drop-zone { border: dotted 3px lightgray; }
+.nv-file-over { border: dotted 3px red; } 
+/* Default class applied to drop zones on over */
+.another-file-over-class { border: dotted 3px green; }

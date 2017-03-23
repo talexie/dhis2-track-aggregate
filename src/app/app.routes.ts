@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home';
-import { ConfigureComponent} from './configure';
+import { ConfigureComponent,FileUploadComponent } from './configure';
 import { TrackerFormComponent } from './configure/services';
 import { AboutComponent } from './about';
 import { NoContentComponent } from './no-content';
@@ -24,7 +24,7 @@ export const ROUTES: Routes = [
         optionSet: OptionSetResolver
     }
   },
-  //{ path: 'home',  component: HomeComponent },
+  { path: 'import',  component: FileUploadComponent },
   /*{ 
   	path: 'configure', 
   	component: ConfigureComponent,

@@ -93,7 +93,7 @@
                   </div>    
                 <td>
                   <div class="etable-div">
-                    <md-input-container>
+                    <md-input-container class="identifier">
                       <label>Order Number:&nbsp;&nbsp;&nbsp; 
                       <input mdInput class="form-control" [name]= "programUniqueIdentifier.trackedEntityAttribute.id" [id]= "programUniqueIdentifier.trackedEntityAttribute.id" [formControlName]="programUniqueIdentifier.trackedEntityAttribute.id" readonly="true">
                       </label>
@@ -182,7 +182,7 @@
                                                [model]="trackerEntryModel"
                                                [hasErrorMessaging]="trackerEntryModel.hasErrorMessages"
                                                [showCharacterHint]="trackerEntryModel.type === 'INPUT'"
-                                               (change)="onChange($event)"
+                                               (change)="onChange()"
                                                >
 
                     
@@ -192,11 +192,11 @@
             <div>
 
                 <button md-button [disabled]="!trackerEntryFormGroup.valid" md-fab type="button" (click)="add($event);trackerEntryFormGroup.reset()">Save</button>
+                 <button md-button md-fab type="button" (click)="cancelAdd()">Cancel</button>
 
             </div>
 
         </div>
-        {{ trackerEntryFormGroup.value | json }}
         <div fxFlex="54%" fxFlexOffset="3%" fxFlexAlign="start">
           <div>
              Order summary 
@@ -206,7 +206,7 @@
             <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
           </div>
           <div>
-            <button md-fab type="button" (click)="addToOrder()">+</button>
+            <button md-fab type="button" (click)="addToOrder(optionsSearched)">+</button>
             <i class="material-icons">mode_edit</i>
             <i class="material-icons">delete</i>
             <button md-fab type="button" (click)="proceed()">Order</button>
@@ -256,7 +256,7 @@
                     <table>
                       <tr class="tdHeader">
                         <td class="data-value-el-td">
-                        
+                       
                         </td>
 
                         <td *ngFor="let optionComboHeader of dataSetElements[j]?.dataElements[0]?.optionCombos" class="data-header-td">
@@ -270,6 +270,7 @@
                           </table>
                         </td>
                       </tr>
+                     
                       <tr [formGroupName]="dataElement.id" *ngFor="let dataElement of dataSetElements[j]?.dataElements;let s= index">
                         <td>
                         {{ dataElement.formName }}

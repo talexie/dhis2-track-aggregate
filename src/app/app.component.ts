@@ -7,6 +7,8 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { AppState } from './app.service';
+import { OrgUnitService } from './shared';
+import { isNullOrUndefined } from 'util';
 
 /*
  * App Component
@@ -18,13 +20,16 @@ import { AppState } from './app.service';
   styleUrls: [
     './app.component.css'
   ],
-  template: `
-    <nav>
+  template: `<nav>
       <a [routerLink]=" ['./'] " routerLinkActive="active">
         Data Entry
       </a>
+ 
       <a [routerLink]=" ['./configure'] ">
         Configure
+      </a>
+      <a [routerLink]=" ['./import'] ">
+        Import Tracker Data
       </a>
     </nav>
 
@@ -37,28 +42,32 @@ import { AppState } from './app.service';
       <div>
         
       </div>
-    </footer>
-  `
+    </footer>`
 })
 export class AppComponent implements OnInit {
-  public angularclassLogo = '';
-  public name = 'Angular 2 Webpack Starter';
-  public url = 'https://twitter.com/AngularClass';
-
+  private isSuperUser = false;
+ 
   constructor(
-    public appState: AppState
+    public appState: AppState,
+    //private orgUnitService: OrgUnitService
   ) {}
 
   public ngOnInit() {
-    console.log('Initial App State', this.appState.state);
+    /*this.orgUnitService.getUserAuthorities().subscribe((currentUser) =>{
+      if(!isNullOrUndefined(currentUser)){
+        for(let userRole of currentUser.userCredentials.userRoles){
+          if(!isNullOrUndefined(userRole)){
+            for(let authority of userRole.authorities){
+              if(authority === 'ALL'){
+                this.isSuperUser = true;
+                return this.isSuperUser;
+              }
+            }
+          }
+        }
+      }
+    });*/
   }
 
 }
 
-/*
- * Please review the https://github.com/AngularClass/angular2-examples/ repo for
- * more angular app examples that you may copy/paste
- * (The examples may not be updated as quickly. Please open an issue on github for us to update it)
- * For help or questions please contact us at @AngularClass on twitter
- * or our chat on Slack at https://AngularClass.com/slack-join
- */

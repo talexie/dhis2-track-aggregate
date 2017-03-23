@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { ProgramService } from './configure/programs';
 import { Http } from '@angular/http';
 import 'rxjs/add/observable/of';
-import { DataSetService } from './shared';
+import { DataSetService,OrgUnitService } from './shared';
 
 @Injectable()
 export class DataResolver implements Resolve<any> {
@@ -60,8 +60,17 @@ export class OptionSetResolver implements Resolve<any> {
 	    //return Observable.of('This is resolved');
 	}
 }
+@Injectable()
+export class CurrentUserResolver implements Resolve<any> {
+  	constructor(private orgUnitService : OrgUnitService){
+
+  	}
+	public resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot):Observable<any>|Promise<any>| any {
+	    return this.orgUnitService.getUserAuthorities();
+	}
+}
  
 // an array of services to resolve routes with data
 export const APP_RESOLVER_PROVIDERS = [
-  DataResolver, SystemUidResolver, DataStoreResolver, DataSetResolver, OptionSetResolver
+  DataResolver, SystemUidResolver, DataStoreResolver, DataSetResolver, OptionSetResolver, CurrentUserResolver
 ];

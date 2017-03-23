@@ -50,7 +50,7 @@ export class ProgramService {
 
   public getPrograms(){
 
-    return this.http.get(this.DHIS2URL + 'api/programs.json?paging=false&fields=id,name,shortName,programType,programStages[id,name,program[id,trackedEntity],notificationTemplates[*],programStageDataElements[id,compulsory,dataElement[id,name,code,shortName,formName,domainType,aggregateType,valueType,optionSet[id,name,valueType,options[id,name|rename(label),code|rename(value)]]]]],programTrackedEntityAttributes[id,name,mandatory,valueType,allowFutureDate,displayInList,trackedEntityAttribute[id,name,code,displayName,generated,unique,pattern,optionSet[id,options[id,code,name]]]]')
+    return this.http.get(this.DHIS2URL + 'api/programs.json?paging=false&fields=id,name,shortName,programType,programStages[id,name,program[id,trackedEntity],notificationTemplates[*]],programTrackedEntityAttributes[id,name,mandatory,valueType,allowFutureDate,displayInList,trackedEntityAttribute[id,name,code,displayName,generated,unique,pattern,optionSet[id,options[id,code,name]]]]')
       .map((res:Response) => res.json())
       .catch(this.notify.handleError);;
   }
@@ -88,7 +88,15 @@ export class ProgramService {
       .map((res:Response) => res.json())
       .catch(this.notify.handleError);;
   }
+  /**
+  Get stage data elements metadata
+  **/
+  getProgramStageDataElementsMetaData(programStageId:string){
 
+    return this.http.get(this.DHIS2URL + 'api/programStages/' + programStageId + '/programStageDataElements.json?paging=false&fields=id,compulsory,dataElement[id,name,code,shortName,formName,domainType,aggregateType,valueType,optionSet[id,name,valueType,options[id,name|rename(label),code|rename(value)]]')
+      .map((res:Response) => res.json())
+      .catch(this.notify.handleError);;
+  }
   /** Generate system uids 
   **/
   public getSystemUids(uidNumber){
@@ -360,123 +368,124 @@ export class ProgramService {
   getDataElementsStageModel(dataElements){
 
     let dataElementsArray: any[] = [];
-
-    Observable.from(dataElements.programStageDataElements).subscribe(function(dataElement:any){
-        let programStageDataElementsFormFields:any = {};
-        programStageDataElementsFormFields.id = dataElement.dataElement.id;
-        //programStageDataElementsFormFields.label = dataElement.dataElement.formName;
-        programStageDataElementsFormFields.placeholder = dataElement.dataElement.formName;
-        programStageDataElementsFormFields.validators = {};
-        if(dataElement.compulsory){
-          programStageDataElementsFormFields.validators = { required:  null };
+    if(!isNullOrUndefined(dataElements)){
+      Observable.from(dataElements).subscribe(function(dataElement:any){
+          let programStageDataElementsFormFields:any = {};
+          programStageDataElementsFormFields.id = dataElement.dataElement.id;
+          //programStageDataElementsFormFields.label = dataElement.dataElement.formName;
+          programStageDataElementsFormFields.placeholder = dataElement.dataElement.formName;
+          programStageDataElementsFormFields.validators = {};
+          if(dataElement.compulsory){
+            programStageDataElementsFormFields.validators = { required:  null };
+            
+          }       
           
-        }       
-        
-        programStageDataElementsFormFields.errorMessages = { required: dataElement.dataElement.formName + ' is required'};
+          programStageDataElementsFormFields.errorMessages = { required: dataElement.dataElement.formName + ' is required'};
 
-        if(dataElement.dataElement.valueType ==='TEXT'){
-          if(!isUndefined(dataElement.dataElement.optionSet)){
-            programStageDataElementsFormFields.options = dataElement.dataElement.optionSet.options;
+          if(dataElement.dataElement.valueType ==='TEXT'){
+            if(!isUndefined(dataElement.dataElement.optionSet)){
+              programStageDataElementsFormFields.options = dataElement.dataElement.optionSet.options;
+              dataElementsArray.push(
+                new DynamicSelectModel<string>(
+                    programStageDataElementsFormFields 
+                )
+              );
+            }
+            else{
+              
+              dataElementsArray.push(
+                new DynamicInputModel(
+                  programStageDataElementsFormFields
+
+                )
+              );
+            }
+          }
+          else if(dataElement.dataElement.valueType ==='DATE'){
+            programStageDataElementsFormFields.inputType = 'date';
+            programStageDataElementsFormFields.inline = true;
             dataElementsArray.push(
-              new DynamicSelectModel<string>(
-                  programStageDataElementsFormFields 
+              new DynamicDatepickerModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if(dataElement.dataElement.valueType ==='TIME'){
+            programStageDataElementsFormFields.inputType = 'time';
+            programStageDataElementsFormFields.inline = true;
+            dataElementsArray.push(
+              new DynamicDatepickerModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if(dataElement.dataElement.valueType ==='LONG_TEXT'){
+            programStageDataElementsFormFields.rows = 3;
+            dataElementsArray.push(
+              new DynamicTextAreaModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if((dataElement.dataElement.valueType ==='INTEGER_POSITIVE') || (dataElement.dataElement.valueType ==='INTEGER_ZERO_OR_POSITIVE')){
+            programStageDataElementsFormFields.validators.pattern = '^[0-9]{1,9}$';
+            programStageDataElementsFormFields.value = 0;
+            dataElementsArray.push(
+              new DynamicInputModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if(dataElement.dataElement.valueType ==='INTEGER_NEGATIVE'){
+            programStageDataElementsFormFields.validators.pattern = '^[-]?[0-9]{1,9}$';
+            programStageDataElementsFormFields.value = 0;
+            dataElementsArray.push(
+              new DynamicInputModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if(dataElement.dataElement.valueType ==='INTEGER'){
+            programStageDataElementsFormFields.validators.pattern = '^[-]?[0-9]{1,9}$';
+            programStageDataElementsFormFields.value = 0;
+            dataElementsArray.push(
+              new DynamicInputModel(
+
+                programStageDataElementsFormFields
+              )
+            );
+          }
+          else if((dataElement.dataElement.valueType ==='NUMBER') || (dataElement.dataElement.valueType ==='PERCENTAGE')){
+            programStageDataElementsFormFields.validators.pattern = '^(([-]?[0-9]{1,9})|([-]?[0-9]{1,9}[.][0-9]{1,9}))$';
+            programStageDataElementsFormFields.value = 0.0;
+            dataElementsArray.push(
+              new DynamicInputModel(
+
+                programStageDataElementsFormFields
               )
             );
           }
           else{
-            
             dataElementsArray.push(
               new DynamicInputModel(
                 programStageDataElementsFormFields
-
               )
             );
           }
-        }
-        else if(dataElement.dataElement.valueType ==='DATE'){
-          programStageDataElementsFormFields.inputType = 'date';
-          programStageDataElementsFormFields.inline = true;
-          dataElementsArray.push(
-            new DynamicDatepickerModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if(dataElement.dataElement.valueType ==='TIME'){
-          programStageDataElementsFormFields.inputType = 'time';
-          programStageDataElementsFormFields.inline = true;
-          dataElementsArray.push(
-            new DynamicDatepickerModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if(dataElement.dataElement.valueType ==='LONG_TEXT'){
-          programStageDataElementsFormFields.rows = 3;
-          dataElementsArray.push(
-            new DynamicTextAreaModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if((dataElement.dataElement.valueType ==='INTEGER_POSITIVE') || (dataElement.dataElement.valueType ==='INTEGER_ZERO_OR_POSITIVE')){
-          programStageDataElementsFormFields.validators.pattern = '^[0-9]{1,9}$';
-          programStageDataElementsFormFields.value = 0;
-          dataElementsArray.push(
-            new DynamicInputModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if(dataElement.dataElement.valueType ==='INTEGER_NEGATIVE'){
-          programStageDataElementsFormFields.validators.pattern = '^[-]?[0-9]{1,9}$';
-          programStageDataElementsFormFields.value = 0;
-          dataElementsArray.push(
-            new DynamicInputModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if(dataElement.dataElement.valueType ==='INTEGER'){
-          programStageDataElementsFormFields.validators.pattern = '^[-]?[0-9]{1,9}$';
-          programStageDataElementsFormFields.value = 0;
-          dataElementsArray.push(
-            new DynamicInputModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else if((dataElement.dataElement.valueType ==='NUMBER') || (dataElement.dataElement.valueType ==='PERCENTAGE')){
-          programStageDataElementsFormFields.validators.pattern = '^(([-]?[0-9]{1,9})|([-]?[0-9]{1,9}[.][0-9]{1,9}))$';
-          programStageDataElementsFormFields.value = 0.0;
-          dataElementsArray.push(
-            new DynamicInputModel(
-
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        else{
-          dataElementsArray.push(
-            new DynamicInputModel(
-              programStageDataElementsFormFields
-            )
-          );
-        }
-        
-    },
-    function(error){
-      console.log("Error" + error);
-    },
-    function(){
-      console.log("Programs stage data elements retrieved");
-    });
+          
+      },
+      function(error){
+        console.log("Error" + error);
+      },
+      function(){
+        console.log("Programs stage data elements retrieved");
+      });
+    }
     return dataElementsArray;
   }
   /** 
@@ -543,18 +552,20 @@ export class ProgramService {
   createStageTableHeadings(dataElements){
     let tableHeadingsArray: any = [];
     let tableHeadingsColumns: any = {};
-    Observable.from(dataElements.programStageDataElements).subscribe(function(dataElement:any){
-        let tableHeadings: any = {};
-        let columnKey = dataElement.dataElement.id;
-        tableHeadings = { key: columnKey, title: dataElement.dataElement.formName };
-        tableHeadingsArray.push(tableHeadings);
-    },
-    function(error){
-      console.log("Error" + error);
-    },
-    function(){
-      console.log("Programs stage table headings retrieved");
-    });
+    if(!isNullOrUndefined(dataElements)){
+      Observable.from(dataElements).subscribe(function(dataElement:any){
+          let tableHeadings: any = {};
+          let columnKey = dataElement.dataElement.id;
+          tableHeadings = { key: columnKey, title: dataElement.dataElement.formName,class:"tableSmartHeading" };
+          tableHeadingsArray.push(tableHeadings);
+      },
+      function(error){
+        console.log("Error" + error);
+      },
+      function(){
+        console.log("Programs stage table headings retrieved");
+      });
+    }
     tableHeadingsColumns = JSON.parse(this.createStringFromArray(tableHeadingsArray));
     return tableHeadingsColumns;
   }
@@ -702,28 +713,28 @@ export class ProgramService {
 
   /** Get program stage data elements without model
   **/
-  getProgramStageDataElementsNoModel(dataElementsMeta,programStage){
+  getProgramStageDataElementsNoModel(dataElementsMeta){
     
     let programStageDataElementsArray: any[] = [];
-    if(dataElementsMeta.id === programStage){
-        Observable.from(dataElementsMeta.programStageDataElements).subscribe(function(dataElements:any){
-          let dataElement:any = {};
-          
-          if(dataElements.dataElement.valueType ==='TEXT'){
-            if(!isUndefined(dataElements.dataElement.optionSet)){
-              dataElement.id = dataElements.dataElement.id;
-              dataElement.optionSetId = dataElements.dataElement.optionSet.id;
-              dataElement.options = dataElements.dataElement.optionSet.options;
-            }
+    if(!isNullOrUndefined(dataElementsMeta)){
+      Observable.from(dataElementsMeta).subscribe(function(dataElements:any){
+        let dataElement:any = {};
+        
+        if(dataElements.dataElement.valueType ==='TEXT'){
+          if(!isUndefined(dataElements.dataElement.optionSet)){
+            dataElement.id = dataElements.dataElement.id;
+            dataElement.optionSetId = dataElements.dataElement.optionSet.id;
+            dataElement.options = dataElements.dataElement.optionSet.options;
           }
-          programStageDataElementsArray.push(dataElement);
-        },
-        function(error){
-          console.log("Error" + error);
-        },
-        function(){
-          console.log("Program dataelements optionSets retrieved");
-        });
+        }
+        programStageDataElementsArray.push(dataElement);
+      },
+      function(error){
+        console.log("Error" + error);
+      },
+      function(){
+        console.log("Program dataelements optionSets retrieved");
+      });
     }
     return programStageDataElementsArray;
   }
@@ -735,7 +746,8 @@ export class ProgramService {
       let inputModel = <DynamicSelectModel<string>>formService.findById(id, formModel);
       if(!isNullOrUndefined(inputModel)){
         inputModel.options = options;
-        
+        //inputModel.select(0);
+        inputModel.valueUpdates.next("Select Option");
         return inputModel;
       }      
     }
