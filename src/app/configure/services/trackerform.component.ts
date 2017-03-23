@@ -355,7 +355,7 @@ export class TrackerFormComponent implements OnInit {
           setTimeout(() => {
             if((changedAttribute[this.programOrderTypeAttr.trackedEntityAttribute.id]) !== 
               "Select Type of Order"){
-              this.stageFormOpen = true;
+              
               this.getStageElements(this.programTreeObject.id);
               this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
             }
@@ -365,7 +365,8 @@ export class TrackerFormComponent implements OnInit {
           },0);
         }
 
-      });    
+      });
+      
           
     }
    
@@ -439,6 +440,7 @@ export class TrackerFormComponent implements OnInit {
       }
       else{
         this.notify.error("","There are no options available to choose from");
+        return this.prog.updateSelectModel(formModel,id,formService,[]);
       }
     }
     /** Get dataSets for reporting
@@ -562,21 +564,26 @@ export class TrackerFormComponent implements OnInit {
         Test changes on dropdowns
 
         **/       
-       
+      
       
       if((!isNullOrUndefined(this.dataElementToUpdate.id)) && (this.dataElementToUpdate.id !== '')){
+
          let initialValue = this.trackerEntryFormGroup.get(this.dataElementToUpdate.id
           ).value;
-        console.log("Initial Value " + initialValue);
+         this.trackerEntryFormGroup.get(this.dataElementToUpdate.id
+          ).valueChanges.subscribe((newChanges) => {
+          this.updateModel(this.formModel,this.currentDataElementToUpdate.id,this.formService,[{label:'',value:''}]);           
+        });
         if(isNullOrUndefined(initialValue)){         
                
           this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
         }
         else{
-          this.applyDropDownChanges(this.dataElementToUpdate,this.stageDataElements,this.currentDataElementToUpdate,'LMIS_ATTR_BASIC_UNIT_DATA_ELEMENT','LMIS_ATTR_BASIC_UNIT',this.formModel,this.formService)
+          this.applyDropDownChanges(this.dataElementToUpdate,this.stageDataElements,this.currentDataElementToUpdate,this.formModel,this.formService);
         }      
       }
       else{
+        console.log("Im null");
         this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,[]);
        
       }
@@ -598,6 +605,10 @@ export class TrackerFormComponent implements OnInit {
     /**
     **/
     getDropDownChanges(trackedEntityAttribute,stageDataElements,formModel,formService){
+
+      if(stageDataElements.length > 0){
+        this.stageFormOpen = true;
+      }
       let nOptionSets = this.dataSetService.getNOptionSetsFromDataElements(this.stageDataElements);
       let changedAttributeValue = this.entityAttributeForm.get(trackedEntityAttribute.id).value;
       this.dataSetService.getNOptionSet(nOptionSets).subscribe((optionSets) => { 
@@ -610,17 +621,25 @@ export class TrackerFormComponent implements OnInit {
        
           setTimeout(() => {
             if(!isNullOrUndefined(this.optionsSearched)){
-
-             this.updateModel(formModel,this.dataElementToUpdate.id,formService,this.optionsSearched);
-              this.appRef.tick();
-
+              if(stageDataElements.length > 0){
+                for (let de of stageDataElements){
+                  if(de.id === this.dataElementToUpdate.id){
+                    this.updateModel(formModel,this.dataElementToUpdate.id,formService,this.optionsSearched);
+                    this.appRef.tick();
+                  }
+                  else{
+                    this.updateModel(formModel,de.id,formService,[]);
+                    this.appRef.tick();
+                  }
+                }
+              }
             }
           },0);
         }
         else
         {
-          this.notify.error("", "An error occurred while getting the formualations types");
-          this.optionsSearched = [{}];
+          this.notify.error("", "An error occurred while getting the formulations types");
+          this.optionsSearched = [];
           this.updateModel(formModel,this.dataElementToUpdate.id,formService,this.optionsSearched);
           
           if(!isNullOrUndefined(this.dataElementToUpdate.id)){
@@ -633,19 +652,29 @@ export class TrackerFormComponent implements OnInit {
     /**
     Apply dropdown changes
     **/
-    applyDropDownChanges(dataElementToUpdate,stageDataElements,currentDataElementToUpdate,deAttributeCode,attributeCode,formModel,formService){
-      this.trackerEntryFormGroup.get(dataElementToUpdate.id
-            ).valueChanges.subscribe((changedValue) => { 
-
-        this.getDataElementSelectedOptions(changedValue,stageDataElements); 
-        if(!isNullOrUndefined(currentDataElementToUpdate.id)){
+    applyDropDownChanges(dataElementToUpdate,stageDataElements,currentDataElementToUpdate,formModel,formService){
+      let changedValue = this.trackerEntryFormGroup.get(dataElementToUpdate.id).value;
+        console.log("value changed " + changedValue + " c de " + currentDataElementToUpdate.id);    
+        let dataElementBasicUnit = this.dataSetService.getDataElementByAttribute(this.programStageDataElements,'LMIS_ATTR_BASIC_UNIT_DATA_ELEMENT');
+        this.updateModel(formModel,dataElementBasicUnit.dataElement.id,formService,[{label:'',value:''}]);
+        this.getDataElementSelectedOptions(changedValue,stageDataElements,formModel,formService,currentDataElementToUpdate,dataElementBasicUnit); 
+ 
+    }
+    /**
+    apply the basic unit
+    **/
+    applyBasicUnit(currentDataElementToUpdate,attributeCode,formModel,formService,dataElementBasicUnit){
+      console.log("called");
+      let basicUnitOptions: any = [];
+      let optionAttributeCode: string = '';
+      
+      if(!isNullOrUndefined(currentDataElementToUpdate.id)){
           
-          this.trackerEntryFormGroup.get(currentDataElementToUpdate.id).valueChanges.subscribe((optionValue)=> {
-
+          let optionValue = this.trackerEntryFormGroup.get(currentDataElementToUpdate.id).value;
+            console.log("option value changed " + optionValue + " c de " + currentDataElementToUpdate.id);
             this.dataSetService.getOptionByCode(optionValue).subscribe((options) => {
-              let basicUnitOptions: any = [];
-              let optionAttributeCode = this.dataSetService.getOptionAttributeValueByCode(options.options,attributeCode);
-              let dataElementBasicUnit = this.dataSetService.getDataElementByAttribute(this.programStageDataElements,deAttributeCode);
+              
+              optionAttributeCode = this.dataSetService.getOptionAttributeValueByCode(options.options,attributeCode);
               if(!isNullOrUndefined(optionAttributeCode)){
                
                 basicUnitOptions.push({label: optionAttributeCode, value: optionAttributeCode});
@@ -656,19 +685,13 @@ export class TrackerFormComponent implements OnInit {
               }
               else{
                 this.notify.info("", "There is no basic unit assigned");
-                 basicUnitOptions.push({label: optionAttributeCode, value: optionAttributeCode});
+                 basicUnitOptions.push({label: optionAttributeCode, value: ''});
                 this.updateModel(formModel,dataElementBasicUnit.dataElement.id,formService,basicUnitOptions);
+                this.trackerEntryFormGroup.invalid;
 
               }               
             });
-          });
         }
-        else{
-          this.updateModel(formModel,currentDataElementToUpdate.id,formService,[]);
-
-        }
-
-      }); 
     }
     // add item to array of selected items when item is selected
     activateOrg = ($event) => {
@@ -972,24 +995,29 @@ export class TrackerFormComponent implements OnInit {
     }
     /**
     **/
-    getDataElementSelectedOptions(selectedValue,stageDataElements){
-      if((!isUndefined(selectedValue)) && (!isUndefined(stageDataElements))){
+    getDataElementSelectedOptions(selectedValue,stageDataElements,formModel,formService,currentDataElementToUpdate,deBasicUnit){
+      if((!isNullOrUndefined(selectedValue)) && (!isNullOrUndefined(stageDataElements))){
         setTimeout(() => {
             let nOptionSets = this.dataSetService.getNOptionSetsFromDataElements(stageDataElements);
             this.dataSetService.getNOptionSet(nOptionSets).subscribe((optionSets) => { 
               let optionSet = this.dataSetService.getSearchOptionSet(optionSets.optionSets,selectedValue);
-             
-              if(!isUndefined(optionSet)){
-                this.currentDataElementToUpdate = this.dataSetService.getDataElementWithOptionSet(stageDataElements,optionSet.id);
+              
+              if(!isNullOrUndefined(optionSet)){
+                currentDataElementToUpdate = this.dataSetService.getDataElementWithOptionSet(stageDataElements,optionSet.id);
              
                 this.optionsSearched = this.dataSetService.getOptionsByAttribute(optionSet,selectedValue);
               
-                setTimeout(() => {
+                //setTimeout(() => {
                   if(!isNullOrUndefined(this.optionsSearched)){
 
-                   this.updateModel(this.formModel,this.currentDataElementToUpdate.id,this.formService,this.optionsSearched);
+                    this.updateModel(formModel,currentDataElementToUpdate.id,formService,this.optionsSearched);
+                    
+                    this.applyBasicUnit(currentDataElementToUpdate,'LMIS_ATTR_BASIC_UNIT',formModel,formService,deBasicUnit); 
                   }
-                },0);
+                  else{
+                    this.updateModel(formModel,currentDataElementToUpdate.id,formService,[]);
+                  }
+                //},0);
                  
               }
               else{
@@ -1003,6 +1031,7 @@ export class TrackerFormComponent implements OnInit {
 
         },0);
       }
+      return  currentDataElementToUpdate;
     }
     /** 
     Cancel adding to an order

@@ -721,13 +721,14 @@ export class ProgramService {
         let dataElement:any = {};
         
         if(dataElements.dataElement.valueType ==='TEXT'){
-          if(!isUndefined(dataElements.dataElement.optionSet)){
+          if(!isNullOrUndefined(dataElements.dataElement.optionSet)){
             dataElement.id = dataElements.dataElement.id;
             dataElement.optionSetId = dataElements.dataElement.optionSet.id;
             dataElement.options = dataElements.dataElement.optionSet.options;
+            programStageDataElementsArray.push(dataElement);
           }
         }
-        programStageDataElementsArray.push(dataElement);
+        
       },
       function(error){
         console.log("Error" + error);
@@ -743,13 +744,17 @@ export class ProgramService {
   **/
   updateSelectModel(formModel,id,formService,options){
     if((!isUndefined(options)) && (!isNull(options))){
-      let inputModel = <DynamicSelectModel<string>>formService.findById(id, formModel);
+      let inputModel = formService.findById(id, formModel) as DynamicSelectModel<string>;
       if(!isNullOrUndefined(inputModel)){
         inputModel.options = options;
         //inputModel.select(0);
-        inputModel.valueUpdates.next("Select Option");
+        //inputModel.valueUpdates.next('0');
+        //inputModel.valueUpdates.next("Select Option");
         return inputModel;
       }      
+    }
+    else{
+      console.log("input model is" + options);
     }
   }
 }
