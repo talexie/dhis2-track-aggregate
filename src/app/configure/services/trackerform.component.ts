@@ -484,13 +484,16 @@ export class TrackerFormComponent implements OnInit {
       }
       else{
         console.log('Im using old form');
-        this.buildTestForm(this.categoryCombos);
+        return this.buildTestForm(this.categoryCombos);
       }     
     }
 
     buildTestForm(elements){
       this.dataEntryFormLoaded = true;
       this.dataSetElements = elements;
+      this.entityDataEntryForm = this.formBuilder.group({
+        dataElements: new FormArray([])
+      });
       this.dataEntryControl = <FormArray> this.entityDataEntryForm.get('dataElements');
       for(let categoryCombo of elements){     
         this.dataEntryControl.push(this.createCategoryComboFormGroup(categoryCombo));
@@ -608,6 +611,9 @@ export class TrackerFormComponent implements OnInit {
 
       if(stageDataElements.length > 0){
         this.stageFormOpen = true;
+      }
+      if(stageDataElements.length < 0){
+        this.stageFormOpen = false;
       }
       let nOptionSets = this.dataSetService.getNOptionSetsFromDataElements(this.stageDataElements);
       let changedAttributeValue = this.entityAttributeForm.get(trackedEntityAttribute.id).value;
@@ -778,7 +784,7 @@ export class TrackerFormComponent implements OnInit {
           return attributes.programTrackedEntityAttributes;
         }
         else{
-          this.notify.error("","Select the Program Stage             ");
+          this.notify.error("","Select the Program Stage");
         }
     }
     getStageTrackerFields(programStage){
@@ -917,9 +923,11 @@ export class TrackerFormComponent implements OnInit {
             day: moment(deadline.date,'YYYY-MM-DD').get('date') 
           }; 
           this.entityAttributeForm.controls['dueDate'].setValue({ date: dueDateString,formatted:deadline.date });
+          this.stageFormOpen = true;
         }
-        
+
       });
+
 
     }
     /**
