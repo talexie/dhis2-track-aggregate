@@ -38,7 +38,12 @@ export class DataSetService {
 	/** Get all Dataset Data Elements with LMIS attribute
     **/
     getDataSet(dataSet){
-	    return this.http.get(this.DHIS2URL + 'api/dataSets.json?paging=false&fields=id,name,code,shortName,formType,expiryDays, timelyDays,openFuturePeriods,fieldCombinationRequired,dataSetElements[dataElement[id,name,code]]&filter=id:eq:' + dataSet)
+	    return this.http.get(this.DHIS2URL + 'api/dataSets/' + dataSet + '.json?paging=false&fields=id,name,code,shortName,formType,expiryDays, timelyDays,openFuturePeriods,fieldCombinationRequired,dataSetElements[dataElement[id,name,code]]')
+	      .map((res:Response) => res.json())
+	      .catch(this.notify.handleError);
+	}
+	getDataSetOptionAttributes(dataSet){
+	    return this.http.get(this.DHIS2URL + 'api/dataSets/' + dataSet + '.json?paging=false&fields=id,name,code,shortName,formType,expiryDays, timelyDays,openFuturePeriods,fieldCombinationRequired,categoryCombo[id,code,name,categories[id,name,code,categoryOptions[id,name,code]]]&filter=id:eq:' + dataSet)
 	      .map((res:Response) => res.json())
 	      .catch(this.notify.handleError);
 	}
@@ -105,6 +110,15 @@ api/dataElements.json?paging=false&fields=id,name,valueType,categoryCombo[id,nam
 	   
 	    return this.http.post(this.DHIS2URL + 'api/dataValueSets?importStrategy=CREATE_AND_UPDATE', dataValues, headers).map((res: Response) => res.json());
 	}
+	/** Complete DataSets via WebAPI 
+	**/
+	completeDataSet(dataValues) {
+	    let headers = new Headers({ 'Content-Type': 'application/json' });
+	    let options = new RequestOptions({ headers: headers });
+	   
+	    return this.http.post(this.DHIS2URL + 'api/dataValueSets?importStrategy=CREATE_AND_UPDATE', dataValues, headers).map((res: Response) => res.json());
+	}
+
 	/**
 	filter and group by category.
 	**/

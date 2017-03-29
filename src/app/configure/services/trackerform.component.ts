@@ -61,12 +61,6 @@ export class TrackerFormComponent implements OnInit {
     private trackerEntryFormGroup: FormGroup = new FormGroup({});
     entityForm: FormGroup = new FormGroup({});
     entityAttributeForm: FormGroup = new FormGroup({});
-    private programIdentifierControl: FormControl = new FormControl({ value:'',disabled:false }, Validators.required);
-    private cyclesControl: FormControl = new FormControl({ value:'Select Cycle',disabled:false }, Validators.required);
-    private programWarehouseControl: FormControl = new FormControl({ value:'',disabled:false }, Validators.required);
-    private programDeliveryControl: FormControl = new FormControl({ value:'',disabled:false }, Validators.required);
-    private programOrderTypeControl: FormControl = new FormControl({ value:'Select Type of Order',disabled:false }, Validators.required);
-
 
     checkboxControl: FormControl;
     checkboxModel: DynamicCheckboxModel;
@@ -212,6 +206,10 @@ export class TrackerFormComponent implements OnInit {
       private stageDataElements: any = [];
       private programStageDataElements: any = [];
       private stageDataElementsMetaData: any = {};
+      private dataSetAttributes:any = [];
+      private dataSetAttributesLength:number = 0;
+      private dataSetAttributesAvailable: boolean = false;
+      private formStayClosed: boolean = true;
 
     // Controls
     //private programIdentifierControl: FormControl = new FormControl('', Validators.required);
@@ -255,9 +253,9 @@ export class TrackerFormComponent implements OnInit {
         dataElements: new FormArray([])
       });
       this.dataSetForm = this.formBuilder.group({
-        selectedOrgUnitId: new FormControl(''),
-        selectedDataSetId: new FormControl(''),
-        selectedPeriodId: new FormControl(''),
+        selectedOrgUnitId: new FormControl({value:'',disabled:false}, Validators.required),
+        selectedDataSetId: new FormControl({value:'',disabled:false}, Validators.required),
+        selectedPeriodId: new FormControl({value:'',disabled:false}, Validators.required),
       });
 
     	this.source.load(this.tableListData);
@@ -339,33 +337,7 @@ export class TrackerFormComponent implements OnInit {
           // Load the forms;
         }
 
-      this.dataSetForm.valueChanges.subscribe(changedValue => {
-
-        
-        if(this.prevSelectedDataSetId !== changedValue.selectedDataSetId){
-          this.dataEntryFormLoaded = true;
-          this.getDataSet(changedValue.selectedDataSetId);
-          this.prevSelectedDataSetId = changedValue.selectedDataSetId;
-        }
-        
-      });
-      this.entityAttributeForm.valueChanges.subscribe(changedAttribute => {
-        this.stageFormOpen = false;
-        if(!isNullOrUndefined(this.programOrderTypeAttr)){
-          setTimeout(() => {
-            if((changedAttribute[this.programOrderTypeAttr.trackedEntityAttribute.id]) !== 
-              "Select Type of Order"){
-              
-              this.getStageElements(this.programTreeObject.id);
-              this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
-            }
-            else{
-              this.stageFormOpen = false;
-            }
-          },0);
-        }
-
-      });
+      
       
           
     }
@@ -453,25 +425,23 @@ export class TrackerFormComponent implements OnInit {
     **/
     getDataSet(dataSet){
       this.dataEntryFormLoaded = false;
-      console.log("dataSetcc " + !isUndefined(dataSet) + " Loaded " + this.dataEntryFormLoaded);
-      
-      if(!isUndefined(dataSet)){
-        return this.dataSetService.getDataSet(dataSet).subscribe((dataSetObject) => {
+    
+      if(!isNullOrUndefined(dataSet)){
+        //return this.dataSetService.getDataSet(dataSet).subscribe((dataSetObject) => {
 
-          this.dataSetService.getDataElementsByDataSet(dataSet).subscribe((dataElement) => {
+          return this.dataSetService.getDataElementsByDataSet(dataSet).subscribe((dataElement) => {
             this.categoryCombos = [];
             let filteredDataElements: any = [];
 
             filteredDataElements = this.dataSetService.groupDataElementOptionCombosByName(dataElement.dataElements,this.dataSetService.filterCategoriesByItem(dataElement.dataElements));
-            console.log("dataSetcato " + JSON.stringify(filteredDataElements));
+
             if(!isUndefined(filteredDataElements)){
               //this.entityDataEntryForm.get('dataElements').setValue(['']);
               this.dataSetService.getCategoryCombos('DISAGGREGATION').subscribe((categoryCombo)=>{
                 
                 this.categoryCombos = this.dataSetService.createCategoryComboFormArray(categoryCombo.categoryCombos,filteredDataElements);
-                console.log("dataSetx " + JSON.stringify(dataSet) + " Loaded " + this.dataEntryFormLoaded);
 
-                this.buildTestForm(this.categoryCombos);
+                 this.buildTestForm(this.categoryCombos);
                 this.dataSetLoaded = dataSet; 
                
               });            
@@ -480,10 +450,10 @@ export class TrackerFormComponent implements OnInit {
               this.notify.error("","The data elements are missing ");
             }
           });
-        });
+        //});
       }
       else{
-        console.log('Im using old form');
+
         return this.buildTestForm(this.categoryCombos);
       }     
     }
@@ -520,7 +490,6 @@ export class TrackerFormComponent implements OnInit {
     }
 
     createDataElementOptionFormGroup(options:any) {
-      console.log("Creating form controls");
           let t:any = {};
           for (let option of options){
            t[option.id] = [''];  
@@ -540,7 +509,7 @@ export class TrackerFormComponent implements OnInit {
       this.trackedEntitySubmitted = true;
 
       this.periodId = moment(moment(this.entityAttributeForm.value.dueDate.formatted,'YYYY-MM-DD').subtract(1,'M')).format('YYYYMM');
-     console.log("Due Date" + JSON.stringify(this.entityAttributeForm.value["dueDate"]) + " " + this.periodId);
+     
       this.periodName = moment(moment(this.entityAttributeForm.value.dueDate.formatted,'YYYY-MM-DD').subtract(1,'M')).format('MMMM YYYY');
       this.dataSetForm.get('selectedOrgUnitId').setValue(this.orgUnit.id);
       this.dataSetForm.get('selectedPeriodId').setValue(this.periodId);
@@ -586,7 +555,6 @@ export class TrackerFormComponent implements OnInit {
         }      
       }
       else{
-        console.log("Im null");
         this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,[]);
        
       }
@@ -828,13 +796,12 @@ export class TrackerFormComponent implements OnInit {
         this.programTreeObject = $event.node.data;
         this.programAttributes = this.getProgramAttributes(this._programsMetaData,this.programTreeObject);
         
-        let incidentDate: FormControl = new FormControl('incidentDate', Validators.required);
-        this.entityAttributeForm.addControl('incidentDate', incidentDate);
-        let dueDate: FormControl = new FormControl('dueDate', Validators.required);
-        this.entityAttributeForm.addControl('dueDate', dueDate);
+        //let incidentDate: FormControl = new FormControl('incidentDate', Validators.required);
+        this.entityAttributeForm.addControl('incidentDate', new FormControl({value:'',disabled:false}, Validators.required));
+        //let dueDate: FormControl = new FormControl('dueDate', Validators.required);
+        this.entityAttributeForm.addControl('dueDate',new FormControl({value:'',disabled:false}, Validators.required));
 
 
-        //this.programCycleIdentifier = this.prog.getProgramCycleIdentifier(this.programAttributes);
         this.programWarehouseAttr = this.prog.getProgramAttributeByCode(this.programAttributes,"LMIS_WAREHOUSE");
         this.programCycleIdentifier = this.prog.getProgramAttributeByCode(this.programAttributes,"LMIS_CYCLES");
         this.programDeliveryZoneAttr = this.prog.getProgramAttributeByCode(this.programAttributes,"LMIS_DELIVERY_ZONE");
@@ -845,14 +812,14 @@ export class TrackerFormComponent implements OnInit {
         this.zone = this.orgunitService.getOrgUnitGroupByAttribute(this.orgUnitGroups,'LMIS_ATTR_DELIVERY_ZONE');
         this.warehouse = this.orgunitService.getOrgUnitGroupByAttribute(this.orgUnitGroups,'LMIS_ATTR_WAREHOUSE');
         //setTimeout(() =>{
-            this.entityAttributeForm.addControl(this.programUniqueIdentifier.trackedEntityAttribute.id, this.programIdentifierControl);
+            this.entityAttributeForm.addControl(this.programUniqueIdentifier.trackedEntityAttribute.id, new FormControl({value:'',disabled:false},Validators.required));
             
-            this.entityAttributeForm.addControl(this.programCycleIdentifier.trackedEntityAttribute.id, this.cyclesControl);
-             this.entityAttributeForm.addControl(this.programWarehouseAttr.trackedEntityAttribute.id, this.programWarehouseControl);
+            this.entityAttributeForm.addControl(this.programCycleIdentifier.trackedEntityAttribute.id, new FormControl({value:'-1',disabled:false},Validators.required));
+             this.entityAttributeForm.addControl(this.programWarehouseAttr.trackedEntityAttribute.id, new FormControl({value:'',disabled:false},Validators.required));
 
-            this.entityAttributeForm.addControl(this.programDeliveryZoneAttr.trackedEntityAttribute.id, this.programDeliveryControl);
+            this.entityAttributeForm.addControl(this.programDeliveryZoneAttr.trackedEntityAttribute.id, new FormControl({value:'',disabled:false},Validators.required));
            
-            this.entityAttributeForm.addControl(this.programOrderTypeAttr.trackedEntityAttribute.id, this.programOrderTypeControl);
+            this.entityAttributeForm.addControl(this.programOrderTypeAttr.trackedEntityAttribute.id, new FormControl({value:'-1',disabled:false},Validators.required));
            
             this.programActivated = true;
             
@@ -901,10 +868,40 @@ export class TrackerFormComponent implements OnInit {
     onDateChanged(event: IMyDateModel) {
         // event properties are: event.date, event.jsdate, event.formatted and event.epoc
     }
-    onDataValueChanged($event) {
-      console.log("Value changed");
-      console.log($event.target.value);
+    onDataValueChanged(dataElement,categoryCombo,option) {
+      //cc: categoryCombo
+      //cp: categoryOptions separated by ;
+      //co: categoryOptionCombo 
+      /*
+      parameters
+      de,ou,pe,co,value,cc,cp,storedBy
+      */
+      let valueObject = {
+        completeDate: moment().format("YYYY-MM-DD"),
+        period:this.dataSetForm.get('selectedPeriodId').value,
+        dataSet:this.dataSetForm.get('selectedDataSetId').value,
+        orgUnit:this.dataSetForm.get('selectedOrgUnitId').value,
+        attributeOptionCombo:'',
+        dataValues: this.getDataValues(this.entityDataEntryForm.value.dataElements)
 
+      }
+      console.log("Value changed" + JSON.stringify(valueObject));
+
+    }
+    getDataValues(values){
+      let dataValues: any = [];
+      if(!isNullOrUndefined(values)){
+        for(let value of values){
+          for(let de in value){
+            for(let cc in value[de]){
+              for(let occ in value[de][cc]){
+                dataValues.push({dataElement:de,categoryOptionCombo:occ, value: value[de][cc][occ]});
+              }              
+            }            
+          }
+        }
+      }
+      return dataValues;
     }
 
     getCycle(cycle) { 
@@ -997,9 +994,11 @@ export class TrackerFormComponent implements OnInit {
       }
     }
     /** Submit Aggregate form
+    parameters: ds,ou,pe,multiOu:false,cc,cp (values separated by ;)
     **/
     submitDataEntryForm(){
       this.dataEntryFormLoaded = false;
+
     }
     /**
     **/
@@ -1048,5 +1047,69 @@ export class TrackerFormComponent implements OnInit {
       this.stageFormOpen = false;
       this.trackerEntryFormGroup.reset();
     } 
-   
+    /**
+    **/
+    getAttributeCombos(){
+      this.dataSetAttributesLength = 0;
+      let dataSetId = this.dataSetForm.get('selectedDataSetId').value;
+      if((!isNullOrUndefined(dataSetId)) && (dataSetId !== '')){
+        
+        this.dataSetService.getDataSetOptionAttributes(dataSetId).subscribe((dataSetObject)=>{
+          this.dataSetAttributes = dataSetObject.categoryCombo;
+          
+          this.dataSetAttributesLength = this.dataSetAttributes.categories.length;
+          if(this.dataSetAttributesLength > 0){
+            for(let category of this.dataSetAttributes.categories){
+              this.dataSetForm.addControl(category.id,new FormControl({value:'',disabled:false},Validators.required));
+            }
+            this.dataSetAttributesAvailable = true;
+          }
+          
+        });
+      }
+    }
+    getAttributeOptionChange():any{
+
+      // Check the length of attributes and ensure it is equal to length before loading form
+      let options: any = [];
+      this.formStayClosed = true;
+      options = this.getAttributesSelected();
+
+      if(options.length === this.dataSetAttributesLength){
+        this.formStayClosed = false;
+
+        this.dataEntryFormLoaded = true;
+        let dataSetId = this.dataSetForm.get('selectedDataSetId').value;
+        if((!isNullOrUndefined(dataSetId)) && (dataSetId !== '')){
+            this.getDataSet(dataSetId);
+        }
+      }
+      else{
+        this.formStayClosed = true;
+      }
+      return this.formStayClosed;
+    }
+    getAttributesSelected(){
+      let selectedCategoryAttributes: any = [];
+      for(let categoryOption of this.dataSetAttributes.categories){
+        let categoryOptionValue = this.dataSetForm.get(categoryOption.id).value;
+        if((categoryOptionValue !== "") && (!isNullOrUndefined(categoryOptionValue))){
+          selectedCategoryAttributes.push(categoryOptionValue);
+        }
+      }
+      return selectedCategoryAttributes;
+    }
+    getOrderType(){
+      let changedAttribute = this.entityAttributeForm.get(this.programOrderTypeAttr.trackedEntityAttribute.id).value; 
+      this.stageFormOpen = false;   
+      if(changedAttribute !== "-1"){
+        
+        this.getStageElements(this.programTreeObject.id);
+        this.getDropDownChanges(this.programOrderTypeAttr.trackedEntityAttribute,this.stageDataElements,this.formModel,this.formService);
+      }
+      else{
+        this.stageFormOpen = false;
+      }       
+      
+    }
 }

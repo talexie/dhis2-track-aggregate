@@ -71,7 +71,7 @@
                 <td>
                   <div class="etable-div">
                     <label>
-                    <md-select class="form-control" [formControlName]="programOrderTypeAttr.trackedEntityAttribute.id" placeholder="Select Order Type">
+                    <md-select class="form-control" (change)="getOrderType()" [formControlName]="programOrderTypeAttr.trackedEntityAttribute.id" placeholder="Select Order Type">
                       <md-option *ngFor="let orderType of orderTypes" [value]="orderType.code">{{ orderType.name }}</md-option>
                     </md-select>
                     </label> 
@@ -86,7 +86,7 @@
               <tr>
                 <div class="etable-div">
                     <label *ngIf="cyclesEnabled">
-                    <md-select class="form-control" [id]= "programCycleIdentifier.trackedEntityAttribute.id" [formControlName]="programCycleIdentifier.trackedEntityAttribute.id" (focus)="getCycle(entityAttributeForm.value[programCycleIdentifier.trackedEntityAttribute.id])" placeholder="Select Cycle">
+                    <md-select class="form-control" [id]= "programCycleIdentifier.trackedEntityAttribute.id" formControlName="{{ programCycleIdentifier.trackedEntityAttribute.id }}" (change)="getCycle(entityAttributeForm.value[programCycleIdentifier.trackedEntityAttribute.id])" placeholder="Select Cycle">
                       <md-option *ngFor="let cycle of cycles" [value]="cycle.code">{{ cycle.name }}</md-option>
                     </md-select>
                     </label>
@@ -224,12 +224,9 @@
             </div>
             <br>
             <div>
-
-              <label>
-              <md-select formControlName="selectedDataSetId" placeholder="Select DataSet">
+              <md-select (change)="getAttributeCombos()" formControlName="selectedDataSetId" placeholder="Select DataSet">
                 <md-option *ngFor="let ds of enabledDataSets" [value]="ds.id">{{ ds.name}}</md-option>
-              </md-select>
-              </label>    
+              </md-select>   
             </div>
             <br>
             <div>
@@ -240,11 +237,21 @@
               </md-select>
               </label>    
             </div>
+            <div *ngIf="(dataSetAttributesLength > 1) && dataSetAttributesAvailable">
+
+              <div *ngFor="let attribute of dataSetAttributes.categories" class="etable-div"> 
+              <md-select  placeholder="{{ attribute.name }}" (change)="getAttributeOptionChange()" formControlName="{{ attribute.id }}">
+                <md-option *ngFor="let categoryOption of attribute.categoryOptions" [value]="categoryOption.id">
+                  {{ categoryOption.name}}
+                </md-option>
+              </md-select>
+              </div>  
+            </div>
 
           </form>
           <br>
           <br>
-          <form class="entityDataEntryForm" [formGroup]="entityDataEntryForm" *ngIf="trackedEntitySubmitted && dataEntryFormLoaded">
+          <form class="entityDataEntryForm" [formGroup]="entityDataEntryForm" *ngIf="trackedEntitySubmitted && dataEntryFormLoaded && !formStayClosed">
 
             <br>
                        
@@ -279,7 +286,7 @@
                           <table>
                             <tr>
                               <td *ngFor="let option of optionCombo.options; let ty= index">
-                                <input class="data-value-td" id="{{ option.id }}" formControlName="{{ option.id}}" (focusout)="onDataValueChanged($event)" type="text" />
+                                <input class="data-value-td" id="{{ option.id }}" formControlName="{{ option.id}}" (change)="onDataValueChanged(dataElement.id,optionCombo.id,option.id)" type="text" />
                               </td>
                             </tr> 
                           </table>                       
