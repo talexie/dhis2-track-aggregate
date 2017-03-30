@@ -211,8 +211,6 @@ export class TrackerFormComponent implements OnInit {
       private dataSetAttributesAvailable: boolean = false;
       private formStayClosed: boolean = true;
 
-    // Controls
-    //private programIdentifierControl: FormControl = new FormControl('', Validators.required);
     constructor(
     	
     	private prog: ProgramService,
@@ -796,9 +794,9 @@ export class TrackerFormComponent implements OnInit {
         this.programTreeObject = $event.node.data;
         this.programAttributes = this.getProgramAttributes(this._programsMetaData,this.programTreeObject);
         
-        //let incidentDate: FormControl = new FormControl('incidentDate', Validators.required);
+  
         this.entityAttributeForm.addControl('incidentDate', new FormControl({value:'',disabled:false}, Validators.required));
-        //let dueDate: FormControl = new FormControl('dueDate', Validators.required);
+        
         this.entityAttributeForm.addControl('dueDate',new FormControl({value:'',disabled:false}, Validators.required));
 
 
@@ -851,7 +849,7 @@ export class TrackerFormComponent implements OnInit {
             setTimeout(() => {
                 this.prog.getDataElementsByProgramStage(this.programTreeObject.id).subscribe((dataElements) =>{
                   this.programStageDataElements = dataElements.programStageDataElements;
-                  //this.settings = this.createTableHeader(this.programStageDataElements);
+                  
                 });
                 setTimeout(() => {
                     this.prog.getProgramStageDataElementsMetaData(this.programTreeObject.id).subscribe((stageDataElements) =>{
@@ -868,7 +866,7 @@ export class TrackerFormComponent implements OnInit {
     onDateChanged(event: IMyDateModel) {
         // event properties are: event.date, event.jsdate, event.formatted and event.epoc
     }
-    onDataValueChanged(dataElement,categoryCombo,option) {
+    onDataValueChanged() {
       //cc: categoryCombo
       //cp: categoryOptions separated by ;
       //co: categoryOptionCombo 
@@ -876,26 +874,36 @@ export class TrackerFormComponent implements OnInit {
       parameters
       de,ou,pe,co,value,cc,cp,storedBy
       */
+      let options = this.getAttributesSelected();
+      /** Get the attributeOptionCombos 
+        **/
+      let attributeOptionCombo = this.getAttributeOptionComboSelected(options);
       let valueObject = {
         completeDate: moment().format("YYYY-MM-DD"),
         period:this.dataSetForm.get('selectedPeriodId').value,
         dataSet:this.dataSetForm.get('selectedDataSetId').value,
         orgUnit:this.dataSetForm.get('selectedOrgUnitId').value,
-        attributeOptionCombo:'',
-        dataValues: this.getDataValues(this.entityDataEntryForm.value.dataElements)
+        //attributeOptionCombo:this.dataSetAttributes.id,
+        //cp: options.join(';'),
+        dataValues : this.getDataValues(this.entityDataEntryForm.value.dataElements,attributeOptionCombo)
 
       }
-      console.log("Value changed" + JSON.stringify(valueObject));
+      return valueObject;
 
     }
-    getDataValues(values){
+    getDataValues(values,attributeOptionCombo){
       let dataValues: any = [];
       if(!isNullOrUndefined(values)){
         for(let value of values){
           for(let de in value){
             for(let cc in value[de]){
               for(let occ in value[de][cc]){
-                dataValues.push({dataElement:de,categoryOptionCombo:occ, value: value[de][cc][occ]});
+                if(attributeOptionCombo !== ""){
+                  dataValues.push({dataElement:de,categoryOptionCombo:occ,attributeOptionCombo:attributeOptionCombo, value: value[de][cc][occ]});
+                }
+                else{
+                  dataValues.push({dataElement:de,categoryOptionCombo:occ, value: value[de][cc][occ]});
+                }
               }              
             }            
           }
@@ -924,8 +932,6 @@ export class TrackerFormComponent implements OnInit {
         }
 
       });
-
-
     }
     /**
     Run program Rules
@@ -998,7 +1004,15 @@ export class TrackerFormComponent implements OnInit {
     **/
     submitDataEntryForm(){
       this.dataEntryFormLoaded = false;
-
+      let dataValues = this.onDataValueChanged();
+      this.dataSetService.saveDataValue(dataValues).subscribe((submittedDataValue)=>{
+        if(submittedDataValue.status === "SUCCESS"){
+          this.notify.info("","Data set has been completed successfully");
+        }
+        else{
+          this.notify.error("",submittedDataValue.description);
+        }
+      });
     }
     /**
     **/
@@ -1030,9 +1044,7 @@ export class TrackerFormComponent implements OnInit {
               else{
                 let errorMessage = "There are no options for " + selectedValue;
                 this.notify.error("", errorMessage);
-                this.optionsSearched = [];
-                //this.updateModel(this.formModel,this.dataElementToUpdate.id,this.formService,this.optionsSearched);
-                //this.trackerEntryFormGroup.get(this.dataElementToUpdate.id).disabled;
+                this.optionsSearched = [];               
               }
             });
 
@@ -1051,6 +1063,7 @@ export class TrackerFormComponent implements OnInit {
     **/
     getAttributeCombos(){
       this.dataSetAttributesLength = 0;
+      this.formStayClosed = true;
       let dataSetId = this.dataSetForm.get('selectedDataSetId').value;
       if((!isNullOrUndefined(dataSetId)) && (dataSetId !== '')){
         
@@ -1077,7 +1090,7 @@ export class TrackerFormComponent implements OnInit {
 
       if(options.length === this.dataSetAttributesLength){
         this.formStayClosed = false;
-
+        
         this.dataEntryFormLoaded = true;
         let dataSetId = this.dataSetForm.get('selectedDataSetId').value;
         if((!isNullOrUndefined(dataSetId)) && (dataSetId !== '')){
@@ -1098,6 +1111,38 @@ export class TrackerFormComponent implements OnInit {
         }
       }
       return selectedCategoryAttributes;
+    }
+    /**
+    Get attribute Option Combo from select category Combo attributes
+    **/
+    getAttributeOptionComboSelected(options){
+      let selectedAttributeOptionCombo:string = "";
+      if(!isNullOrUndefined(options)){
+        for(let attributeOptionCombo of this.dataSetAttributes.categoryOptionCombos){
+          
+          if((!isNullOrUndefined(attributeOptionCombo)) && (!isNullOrUndefined(attributeOptionCombo.categoryOptions))){
+            if(options.length === attributeOptionCombo.categoryOptions.length){
+              let matched = false;
+              let matchedCount = 0;
+              for(let categoryOption of attributeOptionCombo.categoryOptions){
+                if(options.indexOf(categoryOption.id) > -1){
+                  matched = true;
+                  matchedCount++;
+                }
+                else{
+                  matched = false;
+                }
+              }
+              if((matched) && (matchedCount === options.length)){
+                selectedAttributeOptionCombo = attributeOptionCombo.id;
+                return selectedAttributeOptionCombo;
+              }
+            }
+                      
+          }
+        }
+      }
+      
     }
     getOrderType(){
       let changedAttribute = this.entityAttributeForm.get(this.programOrderTypeAttr.trackedEntityAttribute.id).value; 

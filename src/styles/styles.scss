@@ -38,21 +38,27 @@
   width:85%;
 }
 .data-value-td{
-  width:70%;
+  width:80%;
+  text-align:center;
 }
 .data-header-td{
-  width:130px;
+  min-width:142px;
+  text-align:center;
+}
+.data-header-inner-td{
+  min-width:142px;
+  text-align:center;
 }
 .data-header-el-td{
   min-width:200px;
   max-width:400px;
 }
 .etable-div {
-    width: 85%;
+    width: 70%;
     background: transparent;
     /* padding: 4px 0px 3px 0px; */
     text-align: right;
-    min-height:35px;
+    min-height:40px;
 }
 .menu-side-top{
   background-color: #fff;

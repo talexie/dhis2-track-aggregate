@@ -43,7 +43,7 @@ export class DataSetService {
 	      .catch(this.notify.handleError);
 	}
 	getDataSetOptionAttributes(dataSet){
-	    return this.http.get(this.DHIS2URL + 'api/dataSets/' + dataSet + '.json?paging=false&fields=id,name,code,shortName,formType,expiryDays, timelyDays,openFuturePeriods,fieldCombinationRequired,categoryCombo[id,code,name,categories[id,name,code,categoryOptions[id,name,code]]]&filter=id:eq:' + dataSet)
+	    return this.http.get(this.DHIS2URL + 'api/dataSets/' + dataSet + '.json?paging=false&fields=id,name,code,shortName,formType,expiryDays, timelyDays,openFuturePeriods,fieldCombinationRequired,categoryCombo[id,code,name,categoryOptionCombos[id,categoryOptions[id]],categories[id,name,code,categoryOptions[id,name,code]]]&filter=id:eq:' + dataSet)
 	      .map((res:Response) => res.json())
 	      .catch(this.notify.handleError);
 	}
@@ -108,7 +108,8 @@ api/dataElements.json?paging=false&fields=id,name,valueType,categoryCombo[id,nam
 	    let headers = new Headers({ 'Content-Type': 'application/json' });
 	    let options = new RequestOptions({ headers: headers });
 	   
-	    return this.http.post(this.DHIS2URL + 'api/dataValueSets?importStrategy=CREATE_AND_UPDATE', dataValues, headers).map((res: Response) => res.json());
+	    return this.http.post(this.DHIS2URL + 'api/dataValueSets?importStrategy=CREATE_AND_UPDATE', dataValues, headers).map((res: Response) => res.json())
+	    .catch(this.notify.handleError);
 	}
 	/** Complete DataSets via WebAPI 
 	**/

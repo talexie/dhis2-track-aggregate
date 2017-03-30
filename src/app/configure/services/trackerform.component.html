@@ -215,27 +215,20 @@
           <br>
           <br>
           <form class="dataSetForm" [formGroup]="dataSetForm" *ngIf="trackedEntitySubmitted" novalidate>
-            <div>
-              <label>
+            <div class="etable-div">
               <md-select formControlName="selectedOrgUnitId" placeholder="Select OrgUnit">
                 <md-option [value]="orgUnit.id">{{ orgUnit.name}}</md-option>
               </md-select>
-              </label>    
             </div>
-            <br>
-            <div>
+            <div class="etable-div">
               <md-select (change)="getAttributeCombos()" formControlName="selectedDataSetId" placeholder="Select DataSet">
                 <md-option *ngFor="let ds of enabledDataSets" [value]="ds.id">{{ ds.name}}</md-option>
               </md-select>   
             </div>
-            <br>
-            <div>
-
-              <label>
+            <div class="etable-div">
               <md-select formControlName="selectedPeriodId" placeholder="Select Period">
                 <md-option [value]="periodId">{{ periodName }} </md-option>
-              </md-select>
-              </label>    
+              </md-select> 
             </div>
             <div *ngIf="(dataSetAttributesLength > 1) && dataSetAttributesAvailable">
 
@@ -261,37 +254,35 @@
                     <div><h2>Section: {{ dataSetElements[j].name }}</h2>
                     </div>
                     <table>
-                      <tr class="tdHeader">
-                        <td class="data-value-el-td">
-                       
-                        </td>
-
-                        <td *ngFor="let optionComboHeader of dataSetElements[j]?.dataElements[0]?.optionCombos" class="data-header-td">
-                          {{optionComboHeader.name }}
-                          <table border="0px" *ngIf="optionComboHeader.options.length > 1">
-                            <tr>
-                              <td *ngFor="let optionHeader of optionComboHeader.options" width="130px">
-                                {{ optionHeader.title }}
-                              </td>
-                            <tr>
-                          </table>
-                        </td>
-                      </tr>
-                     
-                      <tr [formGroupName]="dataElement.id" *ngFor="let dataElement of dataSetElements[j]?.dataElements;let s= index">
-                        <td>
-                        {{ dataElement.formName }}
-                        </td>
-                        <td [formGroupName]="optionCombo.id" *ngFor="let optionCombo of dataElement.optionCombos; let y= index">
-                          <table>
-                            <tr>
-                              <td *ngFor="let option of optionCombo.options; let ty= index">
-                                <input class="data-value-td" id="{{ option.id }}" formControlName="{{ option.id}}" (change)="onDataValueChanged(dataElement.id,optionCombo.id,option.id)" type="text" />
-                              </td>
-                            </tr> 
-                          </table>                       
-                        </td>
-                      </tr>                   
+                        <tr class="tdHeader">
+                          <td class="data-header-el-td">
+                         
+                          </td>
+                          <td *ngFor="let optionComboHeader of dataSetElements[j]?.dataElements[0]?.optionCombos" class="data-header-td">
+                            {{optionComboHeader.name }}
+                            <table border="0px" *ngIf="optionComboHeader.options.length > 1">
+                              <tr>
+                                <td *ngFor="let optionHeader of optionComboHeader.options" class="data-header-inner-td" >
+                                  {{ optionHeader.title }}
+                                </td>
+                              <tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr [formGroupName]="dataElement.id" *ngFor="let dataElement of dataSetElements[j]?.dataElements;let s= index">
+                          <td class="data-header-el-td">
+                          {{ dataElement.formName }}
+                          </td>
+                          <td [formGroupName]="optionCombo.id" *ngFor="let optionCombo of dataElement.optionCombos; let y= index">
+                            <table>
+                              <tr>
+                                <td *ngFor="let option of optionCombo.options; let ty= index">
+                                  <input class="data-value-td" id="{{ option.id }}" formControlName="{{ option.id}}" (change)="onDataValueChanged(dataElement.id,optionCombo.id,option.id)" type="text" />
+                                </td>
+                              </tr> 
+                            </table>                       
+                          </td>
+                        </tr>                 
                     </table>
                   </div>  
                 </div>
